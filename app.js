@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 const authRoutes = require("./routes/auth");
+const wordRoutes = require("./routes/word");
 
 const MONGODB_URI =
 	"mongodb+srv://adminek:qXPWEvsqnqDEEYcR@cluster0.8ypuv.mongodb.net/leareng?retryWrites=true&w=majority";
@@ -12,6 +13,8 @@ const app = express();
 app.use(bodyParser.json());
 
 app.use("/auth", authRoutes);
+
+app.use("/words", wordRoutes);
 
 app.use((err, req, res, next) => {
 	console.log(err);
