@@ -18,6 +18,10 @@ const userSchema = new Schema({
 	avatarUrl: {
 		type: String,
 	},
+	role: {
+		type: Number,
+		default: 1,
+	},
 	words: [
 		{
 			type: Schema.Types.ObjectId,
