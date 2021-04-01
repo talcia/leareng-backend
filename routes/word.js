@@ -12,16 +12,20 @@ router.post(
 	[
 		body("word").trim().not().isEmpty(),
 		body("translation").trim().not().isEmpty(),
+		body("fromLang").trim().not().isEmpty(),
+		body("toLang").trim().not().isEmpty(),
 	],
 	wordController.createWord
 );
 
-router.get("/", wordController.getWords);
+router.get("/", isAuth, wordController.getWords);
 
 router.get("/:id", isAuth, wordController.getWord);
 
 router.patch("/:id", isAuth, wordController.updateWord);
 
 router.delete("/:id", isAuth, wordController.deleteWord);
+
+// router.get("/random", wordController.getRandomWords);
 
 module.exports = router;
