@@ -14,11 +14,15 @@ exports.createWord = async (req, res, next) => {
 		}
 		const word = req.body.word;
 		const translation = req.body.translation;
+		const fromLang = req.body.fromLang;
+		const toLang = req.body.toLang;
 		let creator;
 
 		const createdWord = new Word({
 			word: word,
+			fromLang: fromLang,
 			translation: translation,
+			toLang: toLang,
 			creator: req.userId,
 		});
 
@@ -56,7 +60,6 @@ exports.getWords = async (req, res, next) => {
 
 exports.getWord = async (req, res, next) => {
 	try {
-		console.log(req.params);
 		const word = await Word.findById(req.params.id);
 		res.status(200).json({ word: word });
 	} catch (err) {
@@ -87,10 +90,10 @@ exports.updateWord = async (req, res, next) => {
 			error.status = 403;
 			throw error;
 		}
-		console.log(updatedWord);
-		console.log(req.params);
 		updatedWord.word = req.body.word;
+		updatedWord.fromLang = req.body.fromLang;
 		updatedWord.translation = req.body.translation;
+		updatedWord.toLang = req.body.toLang;
 		const result = await updatedWord.save();
 		res.status(200).json({ word: result });
 	} catch (err) {
@@ -116,12 +119,9 @@ exports.deleteWord = async (req, res, next) => {
 			throw error;
 		}
 		await Word.findByIdAndRemove(wordId);
-		console.log(req.userId);
 		const user = await User.findById(req.userId);
-		console.log(user);
 		user.words.pull(wordId);
 		await user.save();
-
 		res.status(200).json({ word: "Word deleted" });
 	} catch (err) {
 		if (!err.statusCode) {
@@ -129,4 +129,8 @@ exports.deleteWord = async (req, res, next) => {
 		}
 		next(err);
 	}
+};
+
+exports.getRandomWords = (req, res, next) => {
+	console.log("word");
 };
