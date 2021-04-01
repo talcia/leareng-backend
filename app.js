@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 
 const authRoutes = require("./routes/auth");
 const wordRoutes = require("./routes/word");
+const userRoutes = require("./routes/user");
 
 const MONGODB_URI =
 	"mongodb+srv://adminek:qXPWEvsqnqDEEYcR@cluster0.8ypuv.mongodb.net/leareng?retryWrites=true&w=majority";
@@ -16,6 +17,8 @@ app.use("/auth", authRoutes);
 
 app.use("/words", wordRoutes);
 
+app.use("/users", userRoutes);
+
 app.use((err, req, res, next) => {
 	console.log(err);
 	const status = err.statusCode || 500;
@@ -23,6 +26,7 @@ app.use((err, req, res, next) => {
 	const data = err.data;
 	res.status(status).json({
 		message: message,
+		status: status,
 		data: data,
 	});
 });
