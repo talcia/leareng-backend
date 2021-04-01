@@ -6,7 +6,15 @@ const wordSchema = new Schema({
 		type: String,
 		require: true,
 	},
+	fromLang: {
+		type: String,
+		require: true,
+	},
 	translation: {
+		type: String,
+		require: true,
+	},
+	toLang: {
 		type: String,
 		require: true,
 	},
