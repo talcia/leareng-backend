@@ -60,7 +60,13 @@ exports.getWords = async (req, res, next) => {
 
 exports.getWord = async (req, res, next) => {
 	try {
-		const word = await Word.findById(req.params.id);
+		const wordId = req.params.id;
+		const word = await Word.findById(wordId);
+		if (!word) {
+			const error = new Error("Word with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
 		res.status(200).json({ word: word });
 	} catch (err) {
 		if (!err.statusCode) {
@@ -131,6 +137,79 @@ exports.deleteWord = async (req, res, next) => {
 	}
 };
 
-exports.getRandomWords = (req, res, next) => {
-	console.log("word");
+exports.getWordFromLangToLang = async (req, res, next) => {
+	try {
+		const fromLang = req.params.fromLang;
+		const toLang = req.params.toLang;
+
+		const words = await Word.find({ fromLang: fromLang, toLang: toLang });
+
+		if (words.length === 0) {
+			const error = new Error("Could not find words for this language");
+			error.status = 404;
+			throw error;
+		}
+
+		const modifyWords = [...words].map((word) => ({
+			_id: word._id,
+			word: word.word,
+			translation: word.translation,
+			fromLang: word.fromLang,
+			toLang: word.toLang,
+		}));
+
+		res.status(200).json({ words: modifyWords });
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getRandomWords = async (req, res, next) => {
+	try {
+		const fromLang = req.params.fromLang;
+		const toLang = req.params.toLang;
+		const numberOfRandomWords = req.params.randomNumber;
+
+		if (numberOfRandomWords <= 0) {
+			const error = new Error(
+				"Random number must be a positive number greater than zero"
+			);
+			error.status = 404;
+			throw error;
+		}
+
+		const words = await Word.aggregate([
+			{
+				$match: {
+					fromLang: fromLang,
+					toLang: toLang,
+				},
+			},
+			{ $sample: { size: numberOfRandomWords * 1 } },
+		]);
+
+		if (words.length === 0) {
+			const error = new Error("Could not find words for this language");
+			error.status = 404;
+			throw error;
+		}
+
+		const modifyWords = [...words].map((word) => ({
+			_id: word._id,
+			word: word.word,
+			translation: word.translation,
+			fromLang: word.fromLang,
+			toLang: word.toLang,
+		}));
+
+		res.status(200).json({ words: modifyWords });
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
 };

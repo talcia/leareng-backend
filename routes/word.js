@@ -26,6 +26,8 @@ router.patch("/:id", isAuth, wordController.updateWord);
 
 router.delete("/:id", isAuth, wordController.deleteWord);
 
-// router.get("/random", wordController.getRandomWords);
+router.get("/:fromLang/:toLang", wordController.getWordFromLangToLang);
+
+router.get("/:fromLang/:toLang/:randomNumber", wordController.getRandomWords);
 
 module.exports = router;
