@@ -18,8 +18,7 @@ router.post(
 						return Promise.reject("Email address already exists");
 					}
 				});
-			})
-			.normalizeEmail(),
+			}),
 		body("password")
 			.trim()
 			.isLength({ min: 8 })
@@ -32,6 +31,8 @@ router.post(
 	],
 	authController.signup
 );
+
+router.get("/:uuid", authController.confirmEmail);
 
 router.post(
 	"/login",

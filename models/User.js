@@ -22,6 +22,14 @@ const userSchema = new Schema({
 		type: Number,
 		default: 1,
 	},
+	active: {
+		type: Boolean,
+		default: false,
+	},
+	uuid: {
+		type: Schema.Types.ObjectId,
+		ref: "Uuid",
+	},
 	words: [
 		{
 			type: Schema.Types.ObjectId,
