@@ -129,10 +129,12 @@ exports.login = async (req, res, next) => {
 			{
 				email: user.email,
 				userId: user._id.toString(),
+				role: user.role.toString(),
 			},
 			"secretsecret",
 			{ expiresIn: "1h" }
 		);
+		req.user = user;
 		res.status(200).json({
 			token: token,
 			userId: user._id.toString(),
