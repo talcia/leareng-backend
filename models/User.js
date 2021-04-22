@@ -34,6 +34,10 @@ const userSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: "TokenReset",
 	},
+	blocked: {
+		type: Boolean,
+		default: false,
+	},
 	words: [
 		{
 			type: Schema.Types.ObjectId,

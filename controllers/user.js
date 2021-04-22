@@ -1,4 +1,5 @@
 const { validationResult } = require("express-validator/check");
+const user = require("../models/user");
 const { update } = require("../models/user");
 
 const User = require("../models/user");
@@ -60,6 +61,11 @@ exports.updateUser = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
+		if (user.blocked) {
+			const error = new Error("User is blocked");
+			error.status = 403;
+			throw error;
+		}
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
@@ -105,6 +111,11 @@ exports.deleteUser = async (req, res, next) => {
 		if (!user) {
 			const error = new Error("Could not find user");
 			error.status = 404;
+			throw error;
+		}
+		if (user.blocked) {
+			const error = new Error("User is blocked");
+			error.status = 403;
 			throw error;
 		}
 		if (user._id.toString() !== req.userId && req.userRole * 1 !== 0) {
@@ -180,6 +191,34 @@ exports.getWord = async (req, res, next) => {
 					fromLang: word.fromLang,
 					toLang: word.toLang,
 				},
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.blockUser = async (req, res, next) => {
+	try {
+		const userId = req.params.id;
+		const user = await User.findById(userId);
+		if (!user) {
+			const error = new Error("User with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		user.blocked = true;
+		user.save();
+
+		res.status(200).json({
+			message: "User has been blocked",
+			user: {
+				_id: user._id,
+				blocked: user.blocked,
 			},
 		});
 	} catch (err) {
