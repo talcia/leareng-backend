@@ -107,7 +107,7 @@ exports.deleteUser = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (user._id.toString() !== req.userId) {
+		if (user._id.toString() !== req.userId && req.userRole * 1 !== 0) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;

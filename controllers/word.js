@@ -91,7 +91,10 @@ exports.updateWord = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (updatedWord.creator._id.toString() !== req.userId) {
+		if (
+			updatedWord.creator._id.toString() !== req.userId &&
+			req.userRole * 1 !== 0
+		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
@@ -119,7 +122,10 @@ exports.deleteWord = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (updatedWord.creator._id.toString() !== req.userId) {
+		if (
+			updatedWord.creator._id.toString() !== req.userId &&
+			req.userRole * 1 !== 0
+		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
@@ -175,7 +181,7 @@ exports.getRandomWords = async (req, res, next) => {
 
 		if (numberOfRandomWords <= 0) {
 			const error = new Error(
-				"Random number must be a positive number greater than zero"
+				"Number must be a positive number greater than zero"
 			);
 			error.status = 404;
 			throw error;
