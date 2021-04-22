@@ -9,11 +9,11 @@ const User = require("../models/user");
 
 const router = express.Router();
 
-router.get("/", isAuth, userController.getUsers);
+router.get("/", isAuth, isAdmin, userController.getUsers);
 
 router.get("/:id/words", isAuth, userController.getWords);
 
-router.get("/:id", isAuth, userController.getUser);
+router.get("/:id", isAuth, isAdmin, userController.getUser);
 
 router.patch("/:id", isAuth, userController.updateUser);
 
