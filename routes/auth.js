@@ -18,8 +18,7 @@ router.post(
 						return Promise.reject("Email address already exists");
 					}
 				});
-			})
-			.normalizeEmail(),
+			}),
 		body("password")
 			.trim()
 			.isLength({ min: 8 })
@@ -33,6 +32,8 @@ router.post(
 	authController.signup
 );
 
+router.get("/confirmEmail/:token", authController.confirmEmail);
+
 router.post(
 	"/login",
 	[
@@ -42,6 +43,8 @@ router.post(
 	authController.login
 );
 
-// router.post("/reset-password", authController.resetPassword);
+router.get("/resetPassword", authController.tokenToResetPassword);
+
+router.post("/:id/reset/:token", authController.resetPassword);
 
 module.exports = router;

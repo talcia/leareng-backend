@@ -1,8 +1,22 @@
 const { validationResult } = require("express-validator/check");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const { v4: uuidv4 } = require("uuid");
 
 const User = require("../models/user");
+const TokenSignup = require("../models/TokenSignup");
+const TokenReset = require("../models/TokenReset");
+
+const transporter = nodemailer.createTransport({
+	host: "smtp.mailtrap.io",
+	port: 2525,
+	auth: {
+		user: "3678d87d1812fd",
+		pass: "9a50b4cb9bad77",
+	},
+});
 
 exports.signup = async (req, res, next) => {
 	try {
@@ -18,17 +32,68 @@ exports.signup = async (req, res, next) => {
 		const password = req.body.password;
 		const hashedPassword = await bcrypt.hash(password, 12);
 		const avatarUrl = req.body.avatarUrl || "";
+
+		const tokenSignup = new TokenSignup({
+			token: crypto.randomBytes(32).toString("hex"),
+		});
 		const user = new User({
 			email: email,
 			password: hashedPassword,
 			name: name,
 			avatarUrl: avatarUrl,
+			tokenToSignup: tokenSignup._id,
 		});
+
+		const msg = {
+			to: email,
+			from: "natalianews12@gmail.com",
+			subject: "Complete the singup",
+			html: `<h1>You successfully signed up!</h1>
+					<br>
+					<p>Let's confirm your email address</p>
+					<p>Click this <a href="http://localhost:8080/auth/confirmEmail/${tokenSignup.token}">link</a> to confim email</p>`,
+		};
+
+		sendEmail(msg);
+
 		const result = await user.save();
+		await tokenSignup.save();
 		res.status(200).json({
 			message: "User created",
 			userId: result._id,
 		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.confirmEmail = async (req, res, next) => {
+	console.log("bede potwierdzał");
+	try {
+		const tokenFromLink = req.params.token;
+		if (!tokenFromLink) {
+			const error = new Error("Link is not valid");
+			error.statusCode = 422;
+			throw error;
+		}
+		const token = await TokenSignup.findOne({ token: tokenFromLink });
+
+		if (!token) {
+			const error = new Error("Uuid not found");
+			error.statusCode = 404;
+			throw error;
+		}
+		const user = await User.findOne({ tokenToSignup: token._id });
+		console.log(user);
+		await TokenSignup.findByIdAndRemove(token._id);
+		user.tokenToSignup = null;
+		user.active = true;
+		await user.save();
+		// mozna zrobi logowanie od razu
+		res.status(200).json({ email: "Email confirmed" });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -64,10 +129,12 @@ exports.login = async (req, res, next) => {
 			{
 				email: user.email,
 				userId: user._id.toString(),
+				role: user.role.toString(),
 			},
 			"secretsecret",
 			{ expiresIn: "1h" }
 		);
+		req.user = user;
 		res.status(200).json({
 			token: token,
 			userId: user._id.toString(),
@@ -78,4 +145,111 @@ exports.login = async (req, res, next) => {
 		}
 		next(err);
 	}
+};
+
+exports.tokenToResetPassword = async (req, res, next) => {
+	try {
+		const email = req.body.email;
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			const error = new Error("No user found with that email address");
+			error.statusCode = 404;
+			throw error;
+		}
+		if (user.tokenToResetPw) {
+			TokenReset.findByIdAndRemove(user.tokenToResetPw);
+			user.tokenToResetPw = null;
+			await user.save();
+		}
+		const tokenReset = new TokenReset({
+			token: crypto.randomBytes(32).toString("hex"),
+		});
+		tokenReset.save();
+		user.tokenToResetPw = tokenReset._id;
+		user.save();
+
+		const msg = {
+			to: email,
+			from: "natalianews12@gmail.com",
+			subject: "Reset your password",
+			html: `<h1>You asked to password change</h1>
+					<p>To reset your password click this <a href="http://localhost:8080/auth/${user._id}/reset/${tokenReset.token}">link</a></p>`,
+		};
+		sendEmail(msg);
+		res.status(200).json({
+			message: "Link to reset password was sent to email",
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.resetPassword = async (req, res, next) => {
+	try {
+		const userID = req.params.id;
+		const tokenReset = req.params.token;
+		const user = await User.findById(userID);
+		if (!user) {
+			const error = new Error("No user found with that id");
+			error.statusCode = 404;
+			throw error;
+		}
+		const token = await TokenReset.findOne({ token: tokenReset });
+		if (!token) {
+			const error = new Error("Token don't exists");
+			error.statusCode = 404;
+			throw error;
+		}
+		console.log(token.hasExpired());
+		if (token.hasExpired()) {
+			const error = new Error("Token expired");
+			error.statusCode = 422;
+			throw error;
+		}
+		if (user.tokenToResetPw.toString() !== token._id.toString()) {
+			const error = new Error("Invalid token ");
+			error.statusCode = 422;
+			throw error;
+		}
+
+		const newPassword = req.body.password;
+		const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+		user.tokenToResetPw = null;
+		user.password = hashedPassword;
+
+		user.save();
+		await TokenReset.findByIdAndRemove(token._id);
+
+		const msg = {
+			to: user.email,
+			from: "natalianews12@gmail.com",
+			subject: "Your password was successfully reset",
+			html: `<h1>Congrats, your password was successfully reset</h1>`,
+		};
+		sendEmail(msg);
+		res.status(200).json({
+			message: "Password was reset",
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+const sendEmail = (msg) => {
+	transporter.sendMail(msg, (err, info) => {
+		if (err) {
+			const error = new Error("Can't send email");
+			error.statusCode = 422;
+			error.data = err;
+			throw error;
+		}
+		console.log("Email sent");
+	});
 };
