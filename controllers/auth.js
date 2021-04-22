@@ -1,17 +1,13 @@
 const { validationResult } = require("express-validator/check");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const sgMail = require("@sendgrid/mail");
 const nodemailer = require("nodemailer");
-const sendgridTransport = require("nodemailer-sendgrid-transport");
 const { v4: uuidv4 } = require("uuid");
 
 const User = require("../models/user");
-const Uuid = require("../models/uuid");
-
-// sgMail.setApiKey(
-// 	"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"
-// );
+const TokenSignup = require("../models/TokenSignup");
+const TokenReset = require("../models/TokenReset");
 
 const transporter = nodemailer.createTransport({
 	host: "smtp.mailtrap.io",
@@ -36,18 +32,18 @@ exports.signup = async (req, res, next) => {
 		const password = req.body.password;
 		const hashedPassword = await bcrypt.hash(password, 12);
 		const avatarUrl = req.body.avatarUrl || "";
-		const uuidCode = uuidv4();
-		const uuId = new Uuid({
-			code: uuidCode,
+
+		const tokenSignup = new TokenSignup({
+			token: crypto.randomBytes(32).toString("hex"),
 		});
 		const user = new User({
 			email: email,
 			password: hashedPassword,
 			name: name,
 			avatarUrl: avatarUrl,
-			uuid: uuId._id,
+			tokenToSignup: tokenSignup._id,
 		});
-		console.log(`chce wyslac do ${email}`);
+
 		const msg = {
 			to: email,
 			from: "natalianews12@gmail.com",
@@ -55,21 +51,13 @@ exports.signup = async (req, res, next) => {
 			html: `<h1>You successfully signed up!</h1>
 					<br>
 					<p>Let's confirm your email address</p>
-					<p>Click this <a href="http://localhost:8080/auth/${uuId.code}">link</a> to confim email</p>`,
+					<p>Click this <a href="http://localhost:8080/auth/confirmEmail/${tokenSignup.token}">link</a> to confim email</p>`,
 		};
 
-		transporter.sendMail(msg, (err, info) => {
-			if (err) {
-				const error = new Error("Can't send email");
-				error.statusCode = 422;
-				error.data = err;
-				throw error;
-			}
-			console.log("Email sent");
-		});
+		sendEmail(msg);
 
 		const result = await user.save();
-		await uuId.save();
+		await tokenSignup.save();
 		res.status(200).json({
 			message: "User created",
 			userId: result._id,
@@ -83,27 +71,25 @@ exports.signup = async (req, res, next) => {
 };
 
 exports.confirmEmail = async (req, res, next) => {
+	console.log("bede potwierdzał");
 	try {
-		const uuidFromLink = req.params.uuid;
-		if (!uuidFromLink) {
+		const tokenFromLink = req.params.token;
+		if (!tokenFromLink) {
 			const error = new Error("Link is not valid");
 			error.statusCode = 422;
-			error.data = errors.array();
 			throw error;
 		}
-		console.log(uuidFromLink);
-		const uuid = await Uuid.findOne({ code: uuidFromLink });
-		console.log(uuid);
+		const token = await TokenSignup.findOne({ token: tokenFromLink });
 
-		if (!uuid) {
+		if (!token) {
 			const error = new Error("Uuid not found");
 			error.statusCode = 404;
 			throw error;
 		}
-		const user = await User.findOne({ uuid: uuid._id });
+		const user = await User.findOne({ tokenToSignup: token._id });
 		console.log(user);
-		await Uuid.findByIdAndRemove(uuid._id);
-		user.code = "";
+		await TokenSignup.findByIdAndRemove(token._id);
+		user.tokenToSignup = null;
 		user.active = true;
 		await user.save();
 		// mozna zrobi logowanie od razu
@@ -157,4 +143,111 @@ exports.login = async (req, res, next) => {
 		}
 		next(err);
 	}
+};
+
+exports.tokenToResetPassword = async (req, res, next) => {
+	try {
+		const email = req.body.email;
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			const error = new Error("No user found with that email address");
+			error.statusCode = 404;
+			throw error;
+		}
+		if (user.tokenToResetPw) {
+			TokenReset.findByIdAndRemove(user.tokenToResetPw);
+			user.tokenToResetPw = null;
+			await user.save();
+		}
+		const tokenReset = new TokenReset({
+			token: crypto.randomBytes(32).toString("hex"),
+		});
+		tokenReset.save();
+		user.tokenToResetPw = tokenReset._id;
+		user.save();
+
+		const msg = {
+			to: email,
+			from: "natalianews12@gmail.com",
+			subject: "Reset your password",
+			html: `<h1>You asked to password change</h1>
+					<p>To reset your password click this <a href="http://localhost:8080/auth/${user._id}/reset/${tokenReset.token}">link</a></p>`,
+		};
+		sendEmail(msg);
+		res.status(200).json({
+			message: "Link to reset password was sent to email",
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.resetPassword = async (req, res, next) => {
+	try {
+		const userID = req.params.id;
+		const tokenReset = req.params.token;
+		const user = await User.findById(userID);
+		if (!user) {
+			const error = new Error("No user found with that id");
+			error.statusCode = 404;
+			throw error;
+		}
+		const token = await TokenReset.findOne({ token: tokenReset });
+		if (!token) {
+			const error = new Error("Token don't exists");
+			error.statusCode = 404;
+			throw error;
+		}
+		console.log(token.hasExpired());
+		if (token.hasExpired()) {
+			const error = new Error("Token expired");
+			error.statusCode = 422;
+			throw error;
+		}
+		if (user.tokenToResetPw.toString() !== token._id.toString()) {
+			const error = new Error("Invalid token ");
+			error.statusCode = 422;
+			throw error;
+		}
+
+		const newPassword = req.body.password;
+		const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+		user.tokenToResetPw = null;
+		user.password = hashedPassword;
+
+		user.save();
+		await TokenReset.findByIdAndRemove(token._id);
+
+		const msg = {
+			to: user.email,
+			from: "natalianews12@gmail.com",
+			subject: "Your password was successfully reset",
+			html: `<h1>Congrats, your password was successfully reset</h1>`,
+		};
+		sendEmail(msg);
+		res.status(200).json({
+			message: "Password was reset",
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+const sendEmail = (msg) => {
+	transporter.sendMail(msg, (err, info) => {
+		if (err) {
+			const error = new Error("Can't send email");
+			error.statusCode = 422;
+			error.data = err;
+			throw error;
+		}
+		console.log("Email sent");
+	});
 };

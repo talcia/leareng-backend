@@ -26,9 +26,13 @@ const userSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
-	uuid: {
+	tokenToSignup: {
 		type: Schema.Types.ObjectId,
-		ref: "Uuid",
+		ref: "TokenSignup",
+	},
+	tokenToResetPw: {
+		type: Schema.Types.ObjectId,
+		ref: "TokenReset",
 	},
 	words: [
 		{

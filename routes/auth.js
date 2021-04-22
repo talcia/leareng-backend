@@ -32,7 +32,7 @@ router.post(
 	authController.signup
 );
 
-router.get("/:uuid", authController.confirmEmail);
+router.get("/confirmEmail/:token", authController.confirmEmail);
 
 router.post(
 	"/login",
@@ -43,6 +43,8 @@ router.post(
 	authController.login
 );
 
-// router.post("/reset-password", authController.resetPassword);
+router.get("/resetPassword", authController.tokenToResetPassword);
+
+router.post("/:id/reset/:token", authController.resetPassword);
 
 module.exports = router;
