@@ -6,23 +6,33 @@ const wordController = require("../controllers/word");
 
 const router = express.Router();
 
-router.post(
-	"/",
-	isAuth,
+// router.post(
+// 	"/",
+// 	isAuth,
+// 	[
+// 		body("word").trim().not().isEmpty(),
+// 		body("translation").trim().not().isEmpty(),
+// 		body("fromLang").trim().not().isEmpty(),
+// 		body("toLang").trim().not().isEmpty(),
+// 	],
+// 	wordController.createWord
+// );
+
+router.get("/", isAuth, wordController.getWords);
+
+router.get("/:id", isAuth, wordController.getWord);
+
+router.patch(
+	"/:id",
 	[
 		body("word").trim().not().isEmpty(),
 		body("translation").trim().not().isEmpty(),
 		body("fromLang").trim().not().isEmpty(),
 		body("toLang").trim().not().isEmpty(),
 	],
-	wordController.createWord
+	isAuth,
+	wordController.updateWord
 );
-
-router.get("/", isAuth, wordController.getWords);
-
-router.get("/:id", isAuth, wordController.getWord);
-
-router.patch("/:id", isAuth, wordController.updateWord);
 
 router.delete("/:id", isAuth, wordController.deleteWord);
 
