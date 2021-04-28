@@ -44,6 +44,12 @@ const userSchema = new Schema({
 			ref: "Word",
 		},
 	],
+	units: [
+		{
+			type: Schema.Types.ObjectId,
+			ref: "Unit",
+		},
+	],
 });
 
 module.exports = mongoose.model("User", userSchema);

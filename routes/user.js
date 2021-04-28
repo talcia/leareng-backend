@@ -13,16 +13,20 @@ router.get("/", isAuth, isAdmin, userController.getUsers);
 
 router.get("/:id/words", isAuth, isAdmin, userController.getWords);
 
+router.get("/:id/units", isAuth, isAdmin, userController.getUnits);
+
 router.get("/:id", isAuth, userController.getUser);
 
-router.post("/:id/block", isAuth, isAdmin, userController.blockUser);
+router.post("/:id/unit", isAuth, isAdmin, userController.unitUser);
 
-router.post("/:id/unblock", isAuth, isAdmin, userController.unblockUser);
+router.post("/:id/ununit", isAuth, isAdmin, userController.ununitUser);
 
 router.patch("/:id", isAuth, userController.updateUser);
 
 router.delete("/:id", isAuth, userController.deleteUser);
 
 router.get("/:id/words/:wordId", isAuth, userController.getWord);
+
+router.get("/:id/units/:unitId", isAuth, userController.getUnit);
 
 module.exports = router;
