@@ -1,4 +1,5 @@
 const { validationResult } = require("express-validator/check");
+const user = require("../models/user");
 const { update } = require("../models/user");
 
 const User = require("../models/user");
@@ -14,6 +15,8 @@ exports.getUsers = async (req, res, next) => {
 			avatarUrl: user.avatarUrl,
 			role: user.role,
 			words: user.words,
+			block: user.block,
+			blocked: user.blocked,
 		}));
 		res.status(200).json({ users: modifyUsers });
 	} catch (err) {
@@ -58,6 +61,11 @@ exports.updateUser = async (req, res, next) => {
 			const error = new Error("Validation faild");
 			error.statusCode = 422;
 			error.data = errors.array();
+			throw error;
+		}
+		if (user.blocked) {
+			const error = new Error("User is blocked");
+			error.status = 403;
 			throw error;
 		}
 		const userId = req.params.id;
@@ -107,7 +115,12 @@ exports.deleteUser = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (user._id.toString() !== req.userId) {
+		if (user.blocked) {
+			const error = new Error("User is blocked");
+			error.status = 403;
+			throw error;
+		}
+		if (user._id.toString() !== req.userId && req.userRole * 1 !== 0) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
@@ -180,6 +193,79 @@ exports.getWord = async (req, res, next) => {
 					fromLang: word.fromLang,
 					toLang: word.toLang,
 				},
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.blockUser = async (req, res, next) => {
+	try {
+		const userId = req.params.id;
+		const user = await User.findById(userId);
+		if (!user) {
+			const error = new Error("User with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		if (user.role === 0) {
+			const error = new Error("Admin can't be blocked");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		if (user.blocked) {
+			const error = new Error("User with this id is already blocked");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		user.blocked = true;
+		user.save();
+
+		res.status(200).json({
+			message: "User has been blocked",
+			user: {
+				_id: user._id,
+				blocked: user.blocked,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.unblockUser = async (req, res, next) => {
+	try {
+		const userId = req.params.id;
+		const user = await User.findById(userId);
+		if (!user) {
+			const error = new Error("User with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+		if (!user.blocked) {
+			const error = new Error("User with this id is not blocked");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		user.blocked = false;
+		user.save();
+
+		res.status(200).json({
+			message: "User has been unblocked",
+			user: {
+				_id: user._id,
+				blocked: user.blocked,
 			},
 		});
 	} catch (err) {

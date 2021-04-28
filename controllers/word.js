@@ -12,6 +12,13 @@ exports.createWord = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
+		const user = await User.findById(req.userId);
+		if (isUserBlock(req.userId)) {
+			const error = new Error("User is blocked");
+			error.status = 403;
+			throw error;
+		}
+
 		const word = req.body.word;
 		const translation = req.body.translation;
 		const fromLang = req.body.fromLang;
@@ -27,8 +34,6 @@ exports.createWord = async (req, res, next) => {
 		});
 
 		await createdWord.save();
-
-		const user = await User.findById(req.userId);
 		creator = user;
 		user.words.push(createdWord._id);
 		await user.save();
@@ -91,7 +96,16 @@ exports.updateWord = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (updatedWord.creator._id.toString() !== req.userId) {
+		if (isUserBlock(req.userId)) {
+			const error = new Error("User is blocked");
+			error.status = 403;
+			throw error;
+		}
+
+		if (
+			updatedWord.creator._id.toString() !== req.userId &&
+			req.userRole * 1 !== 0
+		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
@@ -119,13 +133,22 @@ exports.deleteWord = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (updatedWord.creator._id.toString() !== req.userId) {
+		const user = await User.findById(req.userId);
+		if (isUserBlock(req.userId)) {
+			const error = new Error("User is blocked");
+			error.status = 403;
+			throw error;
+		}
+		if (
+			updatedWord.creator._id.toString() !== req.userId &&
+			req.userRole * 1 !== 0
+		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
 		}
 		await Word.findByIdAndRemove(wordId);
-		const user = await User.findById(req.userId);
+
 		user.words.pull(wordId);
 		await user.save();
 		res.status(200).json({ word: "Word deleted" });
@@ -175,7 +198,7 @@ exports.getRandomWords = async (req, res, next) => {
 
 		if (numberOfRandomWords <= 0) {
 			const error = new Error(
-				"Random number must be a positive number greater than zero"
+				"Number must be a positive number greater than zero"
 			);
 			error.status = 404;
 			throw error;
@@ -212,4 +235,9 @@ exports.getRandomWords = async (req, res, next) => {
 		}
 		next(err);
 	}
+};
+
+isUserBlock = async (userId) => {
+	const user = await User.findById(req.userId);
+	return user.blocked;
 };

@@ -15,6 +15,10 @@ router.get("/:id/words", isAuth, isAdmin, userController.getWords);
 
 router.get("/:id", isAuth, userController.getUser);
 
+router.post("/:id/block", isAuth, isAdmin, userController.blockUser);
+
+router.post("/:id/unblock", isAuth, isAdmin, userController.unblockUser);
+
 router.patch("/:id", isAuth, userController.updateUser);
 
 router.delete("/:id", isAuth, userController.deleteUser);
