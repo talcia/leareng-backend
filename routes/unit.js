@@ -2,7 +2,8 @@ const express = require("express");
 const { body } = require("express-validator/check");
 
 const isAuth = require("../middleware/is-auth");
-const isAdmin = require("../middleware/is-admin");
+const isEmailConfirm = require("../middleware/is-email-confirm");
+const isBlocked = require("../middleware/is-user-blocked");
 const unitController = require("../controllers/unit");
 
 const router = express.Router();
@@ -10,6 +11,8 @@ const router = express.Router();
 router.post(
 	"/",
 	isAuth,
+	isEmailConfirm,
+	isBlocked,
 	[
 		body("name").trim().not().isEmpty(),
 		body("fromLang").trim().not().isEmpty(),
@@ -18,9 +21,9 @@ router.post(
 	unitController.createUnit
 );
 
-router.get("/", isAuth, isAdmin, unitController.getUnits);
+router.get("/", isAuth, unitController.getUnits);
 
-router.get("/:id", isAuth, unitController.getUnit);
+router.get("/:id", isAuth, isEmailConfirm, unitController.getUnit);
 
 router.patch(
 	"/:id",
@@ -30,14 +33,24 @@ router.patch(
 		body("toLang").trim().not().isEmpty(),
 	],
 	isAuth,
+	isBlocked,
+	isEmailConfirm,
 	unitController.updateUnit
 );
 
-router.delete("/:id", isAuth, unitController.deleteUnit);
+router.delete(
+	"/:id",
+	isAuth,
+	isEmailConfirm,
+	isBlocked,
+	unitController.deleteUnit
+);
 
 router.post(
 	"/:id/words",
 	isAuth,
+	isEmailConfirm,
+	isBlocked,
 	[
 		body("word").trim().not().isEmpty(),
 		body("translation").trim().not().isEmpty(),
@@ -47,8 +60,12 @@ router.post(
 	unitController.addWordToUnit
 );
 
-router.get("/:id/words", isAuth, unitController.getWordsFromUnit);
-
-// router.get("/:fromLang/:toLang/:randomNumber", unitController.getRandomWords);
+router.get(
+	"/:id/words",
+	isAuth,
+	isEmailConfirm,
+	isBlocked,
+	unitController.getWordsFromUnit
+);
 
 module.exports = router;
