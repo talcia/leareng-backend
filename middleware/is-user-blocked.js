@@ -3,8 +3,8 @@ const { decodeToken } = require("../utils/decodeToken");
 module.exports = async (req, res, next) => {
 	const decodedToken = decodeToken(req, res, next);
 	try {
-		if (+decodedToken.role !== 0) {
-			const error = new Error("Not authenticated");
+		if (!decodedToken.blocked) {
+			const error = new Error("User is blocked");
 			error.statusCode = 401;
 			next(error);
 		}

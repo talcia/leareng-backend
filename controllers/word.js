@@ -1,55 +1,8 @@
 const { validationResult } = require("express-validator/check");
+const { isUserBlocked } = require("../utils/isUserBlocked");
 
 const User = require("../models/user");
 const Word = require("../models/word");
-
-exports.createWord = async (req, res, next) => {
-	try {
-		const errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
-			error.statusCode = 422;
-			error.data = errors.array();
-			throw error;
-		}
-		const user = await User.findById(req.userId);
-		if (isUserBlock(req.userId)) {
-			const error = new Error("User is blocked");
-			error.status = 403;
-			throw error;
-		}
-
-		const word = req.body.word;
-		const translation = req.body.translation;
-		const fromLang = req.body.fromLang;
-		const toLang = req.body.toLang;
-		let creator;
-
-		const createdWord = new Word({
-			word: word,
-			fromLang: fromLang,
-			translation: translation,
-			toLang: toLang,
-			creator: req.userId,
-		});
-
-		await createdWord.save();
-		creator = user;
-		user.words.push(createdWord._id);
-		await user.save();
-
-		res.status(200).json({
-			message: "Word created",
-			word: createdWord,
-			creator: { _id: creator._id, name: creator.name },
-		});
-	} catch (err) {
-		if (!err.statusCode) {
-			err.statusCode = 500;
-		}
-		next(err);
-	}
-};
 
 exports.getWords = async (req, res, next) => {
 	try {
@@ -96,7 +49,7 @@ exports.updateWord = async (req, res, next) => {
 			error.status = 404;
 			throw error;
 		}
-		if (isUserBlock(req.userId)) {
+		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
 			error.status = 403;
 			throw error;
@@ -104,7 +57,7 @@ exports.updateWord = async (req, res, next) => {
 
 		if (
 			updatedWord.creator._id.toString() !== req.userId &&
-			req.userRole * 1 !== 0
+			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
@@ -134,23 +87,33 @@ exports.deleteWord = async (req, res, next) => {
 			throw error;
 		}
 		const user = await User.findById(req.userId);
-		if (isUserBlock(req.userId)) {
+		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
 			error.status = 403;
 			throw error;
 		}
 		if (
 			updatedWord.creator._id.toString() !== req.userId &&
-			req.userRole * 1 !== 0
+			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
 		}
-		await Word.findByIdAndRemove(wordId);
 
+		const unit = Unit.findById(word.block);
+		if (unit) {
+			const error = new Error("This word isn't in any unit");
+			error.status = 404;
+			throw error;
+		}
+
+		await Word.findByIdAndRemove(wordId);
 		user.words.pull(wordId);
 		await user.save();
+		unit.words.pull(wordId);
+		await unit.save();
+
 		res.status(200).json({ word: "Word deleted" });
 	} catch (err) {
 		if (!err.statusCode) {
@@ -235,9 +198,4 @@ exports.getRandomWords = async (req, res, next) => {
 		}
 		next(err);
 	}
-};
-
-isUserBlock = async (userId) => {
-	const user = await User.findById(req.userId);
-	return user.blocked;
 };

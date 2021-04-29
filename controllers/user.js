@@ -4,6 +4,7 @@ const { update } = require("../models/user");
 
 const User = require("../models/user");
 const Word = require("../models/word");
+const Unit = require("../models/unit");
 
 exports.getUsers = async (req, res, next) => {
 	try {
@@ -15,7 +16,7 @@ exports.getUsers = async (req, res, next) => {
 			avatarUrl: user.avatarUrl,
 			role: user.role,
 			words: user.words,
-			block: user.block,
+			unit: user.unit,
 			blocked: user.blocked,
 		}));
 		res.status(200).json({ users: modifyUsers });
@@ -120,7 +121,7 @@ exports.deleteUser = async (req, res, next) => {
 			error.status = 403;
 			throw error;
 		}
-		if (user._id.toString() !== req.userId && req.userRole * 1 !== 0) {
+		if (user._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
@@ -142,6 +143,15 @@ exports.getWords = async (req, res, next) => {
 		if (!user) {
 			const error = new Error("User with this id not find");
 			error.statusCode = 404;
+			throw error;
+		}
+
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
 			throw error;
 		}
 		const userWords = await Word.find({ creator: userId });
@@ -175,6 +185,14 @@ exports.getWord = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
+			throw error;
+		}
 		const wordId = req.params.wordId;
 
 		const word = await Word.findById(wordId);
@@ -192,6 +210,92 @@ exports.getWord = async (req, res, next) => {
 					translation: word.translation,
 					fromLang: word.fromLang,
 					toLang: word.toLang,
+				},
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getUnits = async (req, res, next) => {
+	try {
+		const userId = req.params.id;
+		const user = await User.findById(userId);
+		if (!user) {
+			const error = new Error("User with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
+			throw error;
+		}
+		const userUnits = await Unit.find({ creator: userId });
+
+		const modifyUserUnits = [...userUnits].map((unit) => ({
+			_id: unit._id,
+			name: unit.name,
+			words: unit.words,
+			fromLang: unit.fromLang,
+			toLang: unit.toLang,
+		}));
+		res.status(200).json({
+			user: {
+				_id: user._id,
+				units: modifyUserUnits,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getUnit = async (req, res, next) => {
+	try {
+		const userId = req.params.id;
+		const user = await User.findById(userId);
+		if (!user) {
+			const error = new Error("User with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
+			throw error;
+		}
+		const unitId = req.params.unitId;
+
+		const unit = await Unit.findById(unitId);
+		if (!unit) {
+			const error = new Error("Unit with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+		res.status(200).json({
+			user: {
+				_id: user._id,
+				unit: {
+					_id: unitId,
+					name: unit.name,
+					fromLang: unit.fromLang,
+					toLang: unit.toLang,
+					score: unit.score,
+					private: unit.private,
 				},
 			},
 		});
@@ -243,7 +347,7 @@ exports.blockUser = async (req, res, next) => {
 	}
 };
 
-exports.unblockUser = async (req, res, next) => {
+exports.ununitUser = async (req, res, next) => {
 	try {
 		const userId = req.params.id;
 		const user = await User.findById(userId);

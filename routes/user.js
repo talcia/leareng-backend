@@ -11,7 +11,9 @@ const router = express.Router();
 
 router.get("/", isAuth, isAdmin, userController.getUsers);
 
-router.get("/:id/words", isAuth, isAdmin, userController.getWords);
+router.get("/:id/words", isAuth, userController.getWords);
+
+router.get("/:id/units", isAuth, userController.getUnits);
 
 router.get("/:id", isAuth, userController.getUser);
 
@@ -24,5 +26,7 @@ router.patch("/:id", isAuth, userController.updateUser);
 router.delete("/:id", isAuth, userController.deleteUser);
 
 router.get("/:id/words/:wordId", isAuth, userController.getWord);
+
+router.get("/:id/units/:unitId", isAuth, userController.getUnit);
 
 module.exports = router;
