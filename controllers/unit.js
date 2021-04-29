@@ -56,7 +56,7 @@ exports.createUnit = async (req, res, next) => {
 
 exports.getUnits = async (req, res, next) => {
 	try {
-		const unit = await Unit.find();
+		const unit = await Unit.find({ private: false });
 		res.status(200).json({ units: unit });
 	} catch (err) {
 		if (!err.statusCode) {
@@ -107,7 +107,7 @@ exports.updateUnit = async (req, res, next) => {
 
 		if (
 			updatedUnit.creator._id.toString() !== req.userId &&
-			req.userRole * 1 !== 0
+			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
@@ -145,7 +145,7 @@ exports.deleteUnit = async (req, res, next) => {
 		}
 		if (
 			updatedUnit.creator._id.toString() !== req.userId &&
-			req.userRole * 1 !== 0
+			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
@@ -235,6 +235,16 @@ exports.getWordsFromUnit = async (req, res, next) => {
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
 			const error = new Error("Unit with this id is not find");
+			error.status = 403;
+			throw error;
+		}
+
+		if (
+			updatedUnit.creator._id.toString() !== req.userId &&
+			+req.userRole !== 0 &&
+			unit.private !== false
+		) {
+			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
 		}
