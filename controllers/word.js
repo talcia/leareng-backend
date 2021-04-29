@@ -199,3 +199,18 @@ exports.getRandomWords = async (req, res, next) => {
 		next(err);
 	}
 };
+
+exports.getRecentWords = async (req, res, next) => {
+	try {
+		const words = await Word.find()
+			.sort({ createdAt: -1 })
+			.limit(+req.params.number);
+
+		res.status(200).json({ words: words });
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
