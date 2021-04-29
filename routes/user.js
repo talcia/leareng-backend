@@ -11,15 +11,15 @@ const router = express.Router();
 
 router.get("/", isAuth, isAdmin, userController.getUsers);
 
-router.get("/:id/words", isAuth, isAdmin, userController.getWords);
+router.get("/:id/words", isAuth, userController.getWords);
 
-router.get("/:id/units", isAuth, isAdmin, userController.getUnits);
+router.get("/:id/units", isAuth, userController.getUnits);
 
 router.get("/:id", isAuth, userController.getUser);
 
-router.post("/:id/unit", isAuth, isAdmin, userController.unitUser);
+router.post("/:id/block", isAuth, isAdmin, userController.blockUser);
 
-router.post("/:id/ununit", isAuth, isAdmin, userController.ununitUser);
+router.post("/:id/unblock", isAuth, isAdmin, userController.unblockUser);
 
 router.patch("/:id", isAuth, userController.updateUser);
 

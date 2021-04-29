@@ -121,7 +121,7 @@ exports.deleteUser = async (req, res, next) => {
 			error.status = 403;
 			throw error;
 		}
-		if (user._id.toString() !== req.userId && req.userRole * 1 !== 0) {
+		if (user._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
@@ -143,6 +143,15 @@ exports.getWords = async (req, res, next) => {
 		if (!user) {
 			const error = new Error("User with this id not find");
 			error.statusCode = 404;
+			throw error;
+		}
+
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
 			throw error;
 		}
 		const userWords = await Word.find({ creator: userId });
@@ -174,6 +183,14 @@ exports.getWord = async (req, res, next) => {
 		if (!user) {
 			const error = new Error("User with this id not find");
 			error.statusCode = 404;
+			throw error;
+		}
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
 			throw error;
 		}
 		const wordId = req.params.wordId;
@@ -213,8 +230,16 @@ exports.getUnits = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
+			throw error;
+		}
 		const userUnits = await Unit.find({ creator: userId });
-		console.log(userUnits);
+
 		const modifyUserUnits = [...userUnits].map((unit) => ({
 			_id: unit._id,
 			name: unit.name,
@@ -243,6 +268,14 @@ exports.getUnit = async (req, res, next) => {
 		if (!user) {
 			const error = new Error("User with this id not find");
 			error.statusCode = 404;
+			throw error;
+		}
+		if (
+			user._id.toString() !== req.userId.toString() &&
+			+req.userRole !== 0
+		) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
 			throw error;
 		}
 		const unitId = req.params.unitId;
@@ -274,7 +307,7 @@ exports.getUnit = async (req, res, next) => {
 	}
 };
 
-exports.unitUser = async (req, res, next) => {
+exports.blockUser = async (req, res, next) => {
 	try {
 		const userId = req.params.id;
 		const user = await User.findById(userId);

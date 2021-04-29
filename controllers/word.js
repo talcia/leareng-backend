@@ -57,7 +57,7 @@ exports.updateWord = async (req, res, next) => {
 
 		if (
 			updatedWord.creator._id.toString() !== req.userId &&
-			req.userRole * 1 !== 0
+			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
@@ -94,16 +94,26 @@ exports.deleteWord = async (req, res, next) => {
 		}
 		if (
 			updatedWord.creator._id.toString() !== req.userId &&
-			req.userRole * 1 !== 0
+			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
 		}
-		await Word.findByIdAndRemove(wordId);
 
+		const unit = Unit.findById(word.block);
+		if (unit) {
+			const error = new Error("This word isn't in any unit");
+			error.status = 404;
+			throw error;
+		}
+
+		await Word.findByIdAndRemove(wordId);
 		user.words.pull(wordId);
 		await user.save();
+		unit.words.pull(wordId);
+		await unit.save();
+
 		res.status(200).json({ word: "Word deleted" });
 	} catch (err) {
 		if (!err.statusCode) {
