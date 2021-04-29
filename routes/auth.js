@@ -34,6 +34,8 @@ router.post(
 
 router.get("/confirmEmail/:token", authController.confirmEmail);
 
+router.post("/sendConfirmEmailAgain", authController.sendConfrimEmailAgain);
+
 router.post(
 	"/login",
 	[
@@ -43,8 +45,17 @@ router.post(
 	authController.login
 );
 
-router.get("/resetPassword", authController.tokenToResetPassword);
+router.post("/resetPassword", authController.tokenToResetPassword);
 
-router.post("/:id/reset/:token", authController.resetPassword);
+router.post(
+	"/resetPassword/:token",
+	[
+		body("password")
+			.trim()
+			.isLength({ min: 8 })
+			.withMessage("Password must be at least 8 character long"),
+	],
+	authController.resetPassword
+);
 
 module.exports = router;
