@@ -87,6 +87,7 @@ exports.updateUser = async (req, res, next) => {
 		updatedUser.role = updatedUser.role;
 		updatedUser.password = updatedUser.password;
 		updatedUser.words = updatedUser.words;
+		updatedUser.score = updatedUser.score;
 
 		await updatedUser.save();
 		res.status(200).json({
@@ -347,7 +348,7 @@ exports.blockUser = async (req, res, next) => {
 	}
 };
 
-exports.ununitUser = async (req, res, next) => {
+exports.unblockUser = async (req, res, next) => {
 	try {
 		const userId = req.params.id;
 		const user = await User.findById(userId);

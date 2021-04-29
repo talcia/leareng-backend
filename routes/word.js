@@ -10,6 +10,8 @@ const router = express.Router();
 
 router.get("/", isAuth, isEmailConfirm, wordController.getWords);
 
+router.get("/recent/:number", isAuth, isBlocked, wordController.getRecentWords);
+
 router.get("/:id", isAuth, isEmailConfirm, wordController.getWord);
 
 router.patch(
