@@ -29,6 +29,10 @@ const wordSchema = new Schema(
 			ref: "Unit",
 			require: true,
 		},
+		difficulty: {
+			type: Number,
+			default: 20,
+		},
 	},
 	{ timestamps: true }
 );
