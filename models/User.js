@@ -50,6 +50,7 @@ const userSchema = new Schema({
 			ref: "Unit",
 		},
 	],
+	favouritesUnits: [{ type: Schema.Types.ObjectId, ref: "Unit" }],
 	score: {
 		type: Number,
 		default: 0,

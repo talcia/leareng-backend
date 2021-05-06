@@ -239,7 +239,9 @@ exports.getUnits = async (req, res, next) => {
 			error.statusCode = 403;
 			throw error;
 		}
-		const userUnits = await Unit.find({ creator: userId });
+		const userUnits = await Unit.find({ creator: userId }).sort({
+			createdAt: -1,
+		});
 
 		const modifyUserUnits = [...userUnits].map((unit) => ({
 			_id: unit._id,
@@ -371,6 +373,100 @@ exports.unblockUser = async (req, res, next) => {
 			user: {
 				_id: user._id,
 				blocked: user.blocked,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getFavouritesUnits = async (req, res, next) => {
+	try {
+		const userId = req.userId;
+		const user = await User.findById(userId);
+		const favUnitsUser = user.favouritesUnits;
+
+		const favUnits = await Unit.find({ _id: { $in: favUnitsUser } });
+		res.status(200).json({
+			user: {
+				_id: user._id,
+				favouritesUnits: favUnits,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.addFavouritesUnits = async (req, res, next) => {
+	try {
+		const userId = req.userId;
+		const user = await User.findById(userId);
+		const unitId = req.params.unitId;
+
+		const unit = await Unit.findById(unitId);
+		if (!unit) {
+			const error = new Error("Unit with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+		if (unit.creator.toString() === req.userId.toString()) {
+			const error = new Error("Can't add own unit to favourites");
+			error.statusCode = 403;
+			throw error;
+		}
+		if (unit.private) {
+			const error = new Error("Not authorized");
+			error.statusCode = 403;
+			throw error;
+		}
+		user.favouritesUnits.push(unit._id);
+		console.log(unit.popularity);
+		unit.popularity = +unit.popularity + 1;
+		await unit.save();
+		await user.save();
+		res.status(200).json({
+			message: "Unit succesfully added to favourites units",
+			user: {
+				_id: user._id,
+				favouritesUnits: user.favouritesUnits,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.deleteFavouritesUnits = async (req, res, next) => {
+	try {
+		const userId = req.userId;
+		const user = await User.findById(userId);
+		const unitId = req.params.unitId;
+
+		const unit = await Unit.findById(unitId);
+		if (!unit) {
+			const error = new Error("Unit with this id not find");
+			error.statusCode = 404;
+			throw error;
+		}
+		user.favouritesUnits.pull(unit._id);
+		unit.popularity = +unit.popularity - 1;
+		await unit.save();
+		await user.save();
+		res.status(200).json({
+			message: "Unit succesfully deleted from favourites units",
+			user: {
+				_id: user._id,
+				favouritesUnits: user.favouritesUnits,
 			},
 		});
 	} catch (err) {
