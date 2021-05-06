@@ -14,7 +14,12 @@ router.post(
 	isEmailConfirm,
 	isBlocked,
 	[
-		body("name").trim().not().isEmpty(),
+		body("name")
+			.trim()
+			.not()
+			.isEmpty()
+			.isLength({ min: 3 })
+			.withMessage("Unit name must be at least 3 character long"),
 		body("fromLang").trim().not().isEmpty(),
 		body("toLang").trim().not().isEmpty(),
 	],

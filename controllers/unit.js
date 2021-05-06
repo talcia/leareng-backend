@@ -56,7 +56,9 @@ exports.createUnit = async (req, res, next) => {
 
 exports.getUnits = async (req, res, next) => {
 	try {
-		const unit = await Unit.find({ private: false });
+		const unit = await Unit.find({ private: false }).sort({
+			createdAt: -1,
+		});
 		res.status(200).json({ units: unit });
 	} catch (err) {
 		if (!err.statusCode) {
@@ -131,8 +133,8 @@ exports.updateUnit = async (req, res, next) => {
 exports.deleteUnit = async (req, res, next) => {
 	try {
 		const unitId = req.params.id;
-		const updatedUnit = await Unit.findById(unitId).populate("creator");
-		if (!updatedUnit) {
+		const unit = await Unit.findById(unitId).populate("creator");
+		if (!unit) {
 			const error = new Error("Could not find unit");
 			error.status = 404;
 			throw error;
@@ -143,18 +145,21 @@ exports.deleteUnit = async (req, res, next) => {
 			error.status = 403;
 			throw error;
 		}
-		if (
-			updatedUnit.creator._id.toString() !== req.userId &&
-			+req.userRole !== 0
-		) {
+		if (unit.creator._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
 			error.status = 403;
 			throw error;
 		}
-		await Unit.findByIdAndRemove(unitId);
+		const words = await Word.find({ unit: unit._id });
+		words.forEach((word) => {
+			user.words.pull(word._id);
+		});
 
 		user.units.pull(unitId);
+
 		await user.save();
+		await Unit.findByIdAndRemove(unitId);
+		await Word.deleteMany({ unit: unit._id });
 		res.status(200).json({ unit: "Unit deleted" });
 	} catch (err) {
 		if (!err.statusCode) {
@@ -240,7 +245,7 @@ exports.getWordsFromUnit = async (req, res, next) => {
 		}
 
 		if (
-			updatedUnit.creator._id.toString() !== req.userId &&
+			unit.creator._id.toString() !== req.userId &&
 			+req.userRole !== 0 &&
 			unit.private !== false
 		) {
@@ -252,8 +257,12 @@ exports.getWordsFromUnit = async (req, res, next) => {
 		const words = await Word.find({
 			creator: req.userId,
 			unit: unit._id,
+		}).sort({ createdAt: -1 });
+		res.status(200).json({
+			unitId: unit._id,
+			name: unit.name,
+			words: words,
 		});
-		res.status(200).json({ words: words });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
