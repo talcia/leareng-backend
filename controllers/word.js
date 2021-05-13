@@ -51,7 +51,7 @@ exports.updateWord = async (req, res, next) => {
 		}
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
@@ -60,7 +60,7 @@ exports.updateWord = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 		updatedWord.word = req.body.word;
@@ -68,7 +68,7 @@ exports.updateWord = async (req, res, next) => {
 		updatedWord.translation = req.body.translation;
 		updatedWord.toLang = req.body.toLang;
 		const result = await updatedWord.save();
-		res.status(200).json({ word: result });
+		res.status(201).json({ word: result });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -89,7 +89,7 @@ exports.deleteWord = async (req, res, next) => {
 		const user = await User.findById(req.userId);
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 		if (
@@ -97,7 +97,7 @@ exports.deleteWord = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 

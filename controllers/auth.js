@@ -58,7 +58,7 @@ exports.signup = async (req, res, next) => {
 
 		const result = await user.save();
 		await tokenSignup.save();
-		res.status(200).json({
+		res.status(201).json({
 			message: "User created",
 			userId: result._id,
 		});
@@ -116,11 +116,10 @@ exports.confirmEmail = async (req, res, next) => {
 		const tokenFromLink = req.params.token;
 		if (!tokenFromLink) {
 			const error = new Error("Link is not valid");
-			error.statusCode = 422;
+			error.statusCode = 400;
 			throw error;
 		}
 		const token = await TokenSignup.findOne({ token: tokenFromLink });
-		console.log(token._id);
 		if (!token) {
 			const error = new Error("Token not found");
 			error.statusCode = 404;
@@ -163,13 +162,13 @@ exports.login = async (req, res, next) => {
 		const password = req.body.password;
 		const user = await User.findOne({ email: email });
 		if (!user) {
-			const error = new Error("Invalid data");
+			const error = new Error("Invalid user data");
 			error.statusCode = 422;
 			throw error;
 		}
 		const isPasswordCorrect = await bcrypt.compare(password, user.password);
 		if (!isPasswordCorrect) {
-			const error = new Error("Invalid data");
+			const error = new Error("Invalid user data");
 			error.statusCode = 422;
 			throw error;
 		}
@@ -243,7 +242,7 @@ exports.resetPassword = async (req, res, next) => {
 		const tokenReset = req.params.token;
 		const token = await TokenReset.findOne({ token: tokenReset });
 		if (!token) {
-			const error = new Error("Token don't exists");
+			const error = new Error("Token not found");
 			error.statusCode = 404;
 			throw error;
 		}
@@ -260,7 +259,7 @@ exports.resetPassword = async (req, res, next) => {
 			throw error;
 		}
 		if (user.tokenToResetPw.toString() !== token._id.toString()) {
-			const error = new Error("Invalid token ");
+			const error = new Error("Invalid token");
 			error.statusCode = 422;
 			throw error;
 		}
@@ -282,7 +281,7 @@ exports.resetPassword = async (req, res, next) => {
 		};
 		sendEmail(msg);
 		res.status(200).json({
-			message: "Password was reset",
+			message: "Password was restarted",
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -296,10 +295,9 @@ const sendEmail = (msg) => {
 	transporter.sendMail(msg, (err, info) => {
 		if (err) {
 			const error = new Error("Can't send email");
-			error.statusCode = 422;
+			error.statusCode = 500;
 			error.data = err;
 			throw error;
 		}
-		console.log("Email sent");
 	});
 };

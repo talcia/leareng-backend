@@ -18,7 +18,7 @@ exports.createUnit = async (req, res, next) => {
 
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
@@ -41,7 +41,7 @@ exports.createUnit = async (req, res, next) => {
 		user.units.push(createdUnit._id);
 		await user.save();
 
-		res.status(200).json({
+		res.status(201).json({
 			message: "Unit created",
 			unit: createdUnit,
 			creator: { _id: creator._id, name: creator.name },
@@ -103,7 +103,7 @@ exports.updateUnit = async (req, res, next) => {
 		}
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
@@ -112,7 +112,7 @@ exports.updateUnit = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 		updatedUnit.name = req.body.name;
@@ -121,7 +121,7 @@ exports.updateUnit = async (req, res, next) => {
 		updatedUnit.private = req.body.private;
 		updatedUnit.score = req.body.score ? req.body.score : updatedUnit.score;
 		const result = await updatedUnit.save();
-		res.status(200).json({ unit: result });
+		res.status(201).json({ unit: result });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -142,12 +142,12 @@ exports.deleteUnit = async (req, res, next) => {
 		const user = await User.findById(req.userId);
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 		if (unit.creator._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 		const words = await Word.find({ unit: unit._id });
@@ -181,14 +181,14 @@ exports.addWordToUnit = async (req, res, next) => {
 		const user = await User.findById(req.userId);
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
 			const error = new Error("Unit with this id is not find");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
@@ -214,7 +214,7 @@ exports.addWordToUnit = async (req, res, next) => {
 		unit.words.push(createdWord._id);
 		await unit.save();
 
-		res.status(200).json({
+		res.status(201).json({
 			message: "Word succesfully added to unit",
 			word: createdWord,
 			creator: { _id: creator._id, name: creator.name },
@@ -233,14 +233,14 @@ exports.getWordsFromUnit = async (req, res, next) => {
 		const user = await User.findById(req.userId);
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
 			const error = new Error("Unit with this id is not find");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
@@ -250,7 +250,7 @@ exports.getWordsFromUnit = async (req, res, next) => {
 			unit.private !== false
 		) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.status = 401;
 			throw error;
 		}
 
