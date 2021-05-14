@@ -66,19 +66,19 @@ exports.updateUser = async (req, res, next) => {
 		}
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
 			const error = new Error("Could not find user");
-			error.status = 404;
+			error.statusCode = 404;
 			throw error;
 		}
 		if (updatedUser._id.toString() !== req.userId) {
 			const error = new Error("Not Authorized");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		updatedUser.email = updatedUser.email;
@@ -114,17 +114,17 @@ exports.deleteUser = async (req, res, next) => {
 		const user = await User.findById(userId);
 		if (!user) {
 			const error = new Error("Could not find user");
-			error.status = 404;
+			error.statusCode = 404;
 			throw error;
 		}
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		if (user._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		await User.findByIdAndRemove(userId);

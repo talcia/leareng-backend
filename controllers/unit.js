@@ -18,7 +18,7 @@ exports.createUnit = async (req, res, next) => {
 
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
@@ -98,12 +98,12 @@ exports.updateUnit = async (req, res, next) => {
 		const updatedUnit = await Unit.findById(req.params.id);
 		if (!updatedUnit) {
 			const error = new Error("Unit with this id don't exists");
-			error.status = 404;
+			error.statusCode = 404;
 			throw error;
 		}
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
@@ -112,7 +112,7 @@ exports.updateUnit = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not Authorized");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		updatedUnit.name = req.body.name;
@@ -136,18 +136,18 @@ exports.deleteUnit = async (req, res, next) => {
 		const unit = await Unit.findById(unitId).populate("creator");
 		if (!unit) {
 			const error = new Error("Could not find unit");
-			error.status = 404;
+			error.statusCode = 404;
 			throw error;
 		}
 		const user = await User.findById(req.userId);
 		if (await isUserBlocked(req.userId)) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		if (unit.creator._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 		const words = await Word.find({ unit: unit._id });
@@ -181,14 +181,14 @@ exports.addWordToUnit = async (req, res, next) => {
 		const user = await User.findById(req.userId);
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
 			const error = new Error("Unit with this id is not find");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
@@ -233,14 +233,14 @@ exports.getWordsFromUnit = async (req, res, next) => {
 		const user = await User.findById(req.userId);
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
 			const error = new Error("Unit with this id is not find");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
@@ -250,7 +250,7 @@ exports.getWordsFromUnit = async (req, res, next) => {
 			unit.private !== false
 		) {
 			const error = new Error("Not Authorized");
-			error.status = 401;
+			error.statusCode = 401;
 			throw error;
 		}
 
