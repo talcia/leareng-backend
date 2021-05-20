@@ -1,6 +1,4 @@
 const { validationResult } = require("express-validator/check");
-const user = require("../models/user");
-const { update } = require("../models/user");
 
 const User = require("../models/user");
 const Word = require("../models/word");
@@ -64,11 +62,6 @@ exports.updateUser = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
-		if (user.blocked) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
@@ -115,11 +108,6 @@ exports.deleteUser = async (req, res, next) => {
 		if (!user) {
 			const error = new Error("Could not find user");
 			error.statusCode = 404;
-			throw error;
-		}
-		if (user.blocked) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
 			throw error;
 		}
 		if (user._id.toString() !== req.userId && +req.userRole !== 0) {

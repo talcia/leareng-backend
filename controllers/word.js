@@ -1,5 +1,4 @@
 const { validationResult } = require("express-validator/check");
-const { isUserBlocked } = require("../utils/isUserBlocked");
 
 const User = require("../models/user");
 const Unit = require("../models/unit");
@@ -50,11 +49,6 @@ exports.updateWord = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
-		if (await isUserBlocked(req.userId)) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 
 		if (
 			updatedWord.creator._id.toString() !== req.userId &&
@@ -88,11 +82,6 @@ exports.deleteWord = async (req, res, next) => {
 			throw error;
 		}
 		const user = await User.findById(req.userId);
-		if (await isUserBlocked(req.userId)) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 		if (
 			updatedWord.creator._id.toString() !== req.userId &&
 			+req.userRole !== 0

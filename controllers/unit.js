@@ -1,5 +1,4 @@
 const { validationResult } = require("express-validator/check");
-const { isUserBlocked } = require("../utils/isUserBlocked");
 
 const Unit = require("../models/unit");
 const User = require("../models/user");
@@ -15,12 +14,6 @@ exports.createUnit = async (req, res, next) => {
 			throw error;
 		}
 		const user = await User.findById(req.userId);
-
-		if (await isUserBlocked(req.userId)) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 
 		const unitName = req.body.name;
 		const fromLang = req.body.fromLang;
@@ -101,11 +94,6 @@ exports.updateUnit = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
-		if (await isUserBlocked(req.userId)) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 
 		if (
 			updatedUnit.creator._id.toString() !== req.userId &&
@@ -140,11 +128,6 @@ exports.deleteUnit = async (req, res, next) => {
 			throw error;
 		}
 		const user = await User.findById(req.userId);
-		if (await isUserBlocked(req.userId)) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 		if (unit.creator._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
 			error.statusCode = 401;
@@ -179,11 +162,6 @@ exports.addWordToUnit = async (req, res, next) => {
 			throw error;
 		}
 		const user = await User.findById(req.userId);
-		if (user.blocked) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
@@ -231,11 +209,6 @@ exports.addWordToUnit = async (req, res, next) => {
 exports.getWordsFromUnit = async (req, res, next) => {
 	try {
 		const user = await User.findById(req.userId);
-		if (user.blocked) {
-			const error = new Error("User is blocked");
-			error.statusCode = 401;
-			throw error;
-		}
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
