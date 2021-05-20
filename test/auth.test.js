@@ -10,7 +10,7 @@ const User = require("../models/user");
 chai.use(chaiHttp);
 
 describe("Auth Controller - Signup", () => {
-	it("should send a response that password is to short and email is invalid", async () => {
+	it("should send a response that password is too short and email is invalid", async () => {
 		const res = await chai.request(app).post("/auth/signup").send({
 			email: "test2",
 			password: "tester",
