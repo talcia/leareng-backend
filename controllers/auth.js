@@ -3,18 +3,17 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const { v4: uuidv4 } = require("uuid");
 
 const User = require("../models/user");
 const TokenSignup = require("../models/TokenSignup");
 const TokenReset = require("../models/TokenReset");
 
 const transporter = nodemailer.createTransport({
-	host: "smtp.mailtrap.io",
+	host: `smtp.mailtrap.io`,
 	port: 2525,
 	auth: {
-		user: "3678d87d1812fd",
-		pass: "9a50b4cb9bad77",
+		user: `${process.env.MAILTRAP_USER}`,
+		pass: `${process.env.MAILTRAP_PASSWORD}`,
 	},
 });
 
@@ -46,7 +45,7 @@ exports.signup = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: "natalianews12@gmail.com",
+			from: `${process.env.MAILTRAP_FROM_MAIL}`,
 			subject: "Complete the singup",
 			html: `<h1>You successfully signed up!</h1>
 					<br>
@@ -86,7 +85,7 @@ exports.sendConfrimEmailAgain = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: "natalianews12@gmail.com",
+			from: `${process.env.MAILTRAP_FROM_MAIL}`,
 			subject: "Complete the singup",
 			html: `<h1>You successfully signed up!</h1>
 				<br>
@@ -128,19 +127,26 @@ exports.confirmEmail = async (req, res, next) => {
 		const updatedUser = await User.findOne({
 			tokenToSignup: token._id.toString(),
 		});
+
 		updatedUser.tokenToSignup = null;
 		updatedUser.active = true;
-		updatedUser.email = updatedUser.email;
-		updatedUser.name = updatedUser.name;
-		updatedUser.avatarUrl = updatedUser.avatarUrl;
-		updatedUser.role = updatedUser.role;
-		updatedUser.password = updatedUser.password;
-		updatedUser.words = updatedUser.words;
-		updatedUser.units = updatedUser.units;
+
 		await updatedUser.save();
 		await TokenSignup.findByIdAndRemove(token._id);
 
-		res.status(200).json({ email: "Email confirmed" });
+		const tokenLogin = jwt.sign(
+			{
+				email: updatedUser.email,
+				userId: updatedUser._id.toString(),
+				role: updatedUser.role.toString(),
+				blocked: updatedUser.blocked,
+				emailConfirm: updatedUser.active,
+			},
+			`${process.env.MAILTRAP_USER}`,
+			{ expiresIn: "1h" }
+		);
+
+		res.status(200).json({ email: "Email confirmed", token: tokenLogin });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -180,7 +186,7 @@ exports.login = async (req, res, next) => {
 				blocked: user.blocked,
 				emailConfirm: user.active,
 			},
-			"secretsecret",
+			`${process.env.MAILTRAP_USER}`,
 			{ expiresIn: "1h" }
 		);
 
@@ -219,7 +225,7 @@ exports.tokenToResetPassword = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: "natalianews12@gmail.com",
+			from: `${process.env.MAILTRAP_FROM_MAIL}`,
 			subject: "Reset your password",
 			html: `<h1>You asked to password change</h1>
 					<p>To reset your password click this <a href="http://localhost:8080/auth/resetPassword/${tokenReset.token}">link</a></p>`,
@@ -275,7 +281,7 @@ exports.resetPassword = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: "natalianews12@gmail.com",
+			from: `${process.env.MAILTRAP_FROM_MAIL}`,
 			subject: "Your password was successfully reset",
 			html: `<h1>Congrats, your password was successfully reset</h1>`,
 		};
