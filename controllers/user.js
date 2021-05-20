@@ -66,19 +66,19 @@ exports.updateUser = async (req, res, next) => {
 		}
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
 			const error = new Error("Could not find user");
-			error.status = 404;
+			error.statusCode = 404;
 			throw error;
 		}
 		if (updatedUser._id.toString() !== req.userId) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		updatedUser.email = updatedUser.email;
@@ -90,7 +90,7 @@ exports.updateUser = async (req, res, next) => {
 		updatedUser.score = updatedUser.score;
 
 		await updatedUser.save();
-		res.status(200).json({
+		res.status(201).json({
 			user: {
 				_id: updatedUser._id,
 				email: updatedUser.email,
@@ -114,17 +114,17 @@ exports.deleteUser = async (req, res, next) => {
 		const user = await User.findById(userId);
 		if (!user) {
 			const error = new Error("Could not find user");
-			error.status = 404;
+			error.statusCode = 404;
 			throw error;
 		}
 		if (user.blocked) {
 			const error = new Error("User is blocked");
-			error.status = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		if (user._id.toString() !== req.userId && +req.userRole !== 0) {
 			const error = new Error("Not Authorized");
-			error.status = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		await User.findByIdAndRemove(userId);
@@ -152,7 +152,7 @@ exports.getWords = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not authorized");
-			error.statusCode = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		const userWords = await Word.find({ creator: userId });
@@ -191,7 +191,7 @@ exports.getWord = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not authorized");
-			error.statusCode = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		const wordId = req.params.wordId;
@@ -236,7 +236,7 @@ exports.getUnits = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not authorized");
-			error.statusCode = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		const userUnits = await Unit.find({ creator: userId }).sort({
@@ -278,7 +278,7 @@ exports.getUnit = async (req, res, next) => {
 			+req.userRole !== 0
 		) {
 			const error = new Error("Not authorized");
-			error.statusCode = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		const unitId = req.params.unitId;
@@ -322,13 +322,13 @@ exports.blockUser = async (req, res, next) => {
 
 		if (user.role === 0) {
 			const error = new Error("Admin can't be blocked");
-			error.statusCode = 404;
+			error.statusCode = 403;
 			throw error;
 		}
 
 		if (user.blocked) {
 			const error = new Error("User with this id is already blocked");
-			error.statusCode = 404;
+			error.statusCode = 403;
 			throw error;
 		}
 
@@ -361,7 +361,7 @@ exports.unblockUser = async (req, res, next) => {
 		}
 		if (!user.blocked) {
 			const error = new Error("User with this id is not blocked");
-			error.statusCode = 404;
+			error.statusCode = 422;
 			throw error;
 		}
 
@@ -418,12 +418,12 @@ exports.addFavouritesUnits = async (req, res, next) => {
 		}
 		if (unit.creator.toString() === req.userId.toString()) {
 			const error = new Error("Can't add own unit to favourites");
-			error.statusCode = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		if (unit.private) {
 			const error = new Error("Not authorized");
-			error.statusCode = 403;
+			error.statusCode = 401;
 			throw error;
 		}
 		user.favouritesUnits.push(unit._id);
