@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const dotenv = require("dotenv");
 
 const authRoutes = require("./routes/auth");
 const wordRoutes = require("./routes/word");
@@ -8,8 +9,9 @@ const userRoutes = require("./routes/user");
 const unitRoutes = require("./routes/unit");
 const favRoutes = require("./routes/favourites");
 
-const MONGODB_URI =
-	"mongodb+srv://adminek:qXPWEvsqnqDEEYcR@cluster0.8ypuv.mongodb.net/leareng?retryWrites=true&w=majority";
+dotenv.config();
+
+const MONGODB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.8ypuv.mongodb.net/leareng?retryWrites=true&w=majority`;
 
 const app = express();
 

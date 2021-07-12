@@ -10,7 +10,7 @@ exports.decodeToken = (req, res, next) => {
 	const token = authHeader.split(" ")[1];
 	let decodedToken;
 	try {
-		decodedToken = jwt.verify(token, "secretsecret");
+		decodedToken = jwt.verify(token, `${process.env.MAILTRAP_USER}`);
 	} catch (err) {
 		err.statusCode = 500;
 		next(err);
