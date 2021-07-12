@@ -1,39 +1,41 @@
-const { validationResult } = require("express-validator/check");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const { validationResult } = require('express-validator/check');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const sgMail = require('@sendgrid/mail');
 
-const User = require("../models/user");
-const TokenSignup = require("../models/TokenSignup");
-const TokenReset = require("../models/TokenReset");
+const User = require('../models/user');
+const TokenSignup = require('../models/TokenSignup');
+const TokenReset = require('../models/TokenReset');
 
-const transporter = nodemailer.createTransport({
-	host: `smtp.mailtrap.io`,
-	port: 2525,
-	auth: {
-		user: `${process.env.MAILTRAP_USER}`,
-		pass: `${process.env.MAILTRAP_PASSWORD}`,
-	},
-});
+sgMail.setApiKey(`SG.${process.env.SENDGRID_API_KEY}`);
 
 exports.signup = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
+			const error = new Error('Validation faild');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
 		}
 		const email = req.body.email;
+
+		const existingUser = await User.findOne({ email: email });
+		if (existingUser) {
+			console.log('tutaj');
+			const error = new Error('User with this email already exisits');
+			error.statusCode = 409;
+			throw error;
+		}
+
 		const name = req.body.name;
 		const password = req.body.password;
 		const hashedPassword = await bcrypt.hash(password, 12);
-		const avatarUrl = req.body.avatarUrl || "";
+		const avatarUrl = req.body.avatarUrl || '';
 
 		const tokenSignup = new TokenSignup({
-			token: crypto.randomBytes(32).toString("hex"),
+			token: crypto.randomBytes(32).toString('hex'),
 		});
 		const user = new User({
 			email: email,
@@ -45,8 +47,9 @@ exports.signup = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: `${process.env.MAILTRAP_FROM_MAIL}`,
-			subject: "Complete the singup",
+			from: `${process.env.MAIL_FROM_MAIL}`,
+			subject: 'Complete the singup',
+			text: 'You successfully signed up!',
 			html: `<h1>You successfully signed up!</h1>
 					<br>
 					<p>Let's confirm your email address</p>
@@ -58,7 +61,7 @@ exports.signup = async (req, res, next) => {
 		const result = await user.save();
 		await tokenSignup.save();
 		res.status(201).json({
-			message: "User created",
+			message: 'User created',
 			userId: result._id,
 		});
 	} catch (err) {
@@ -74,19 +77,19 @@ exports.sendConfrimEmailAgain = async (req, res, next) => {
 		const email = req.body.email;
 		const user = await User.findOne({ email: email });
 		if (!user) {
-			const error = new Error("User with this email not find");
+			const error = new Error('User with this email not find');
 			error.statusCode = 404;
 			throw error;
 		}
 
 		const tokenSignup = new TokenSignup({
-			token: crypto.randomBytes(32).toString("hex"),
+			token: crypto.randomBytes(32).toString('hex'),
 		});
 
 		const msg = {
 			to: email,
-			from: `${process.env.MAILTRAP_FROM_MAIL}`,
-			subject: "Complete the singup",
+			from: `${process.env.MAIL_FROM_MAIL}`,
+			subject: 'Complete the singup',
 			html: `<h1>You successfully signed up!</h1>
 				<br>
 				<p>Let's confirm your email address</p>
@@ -99,7 +102,7 @@ exports.sendConfrimEmailAgain = async (req, res, next) => {
 		await tokenSignup.save();
 
 		res.status(200).json({
-			message: "Email sent",
+			message: 'Email sent',
 			email: email,
 		});
 	} catch (err) {
@@ -114,13 +117,13 @@ exports.confirmEmail = async (req, res, next) => {
 	try {
 		const tokenFromLink = req.params.token;
 		if (!tokenFromLink) {
-			const error = new Error("Link is not valid");
+			const error = new Error('Link is not valid');
 			error.statusCode = 400;
 			throw error;
 		}
 		const token = await TokenSignup.findOne({ token: tokenFromLink });
 		if (!token) {
-			const error = new Error("Token not found");
+			const error = new Error('Token not found');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -143,10 +146,10 @@ exports.confirmEmail = async (req, res, next) => {
 				emailConfirm: updatedUser.active,
 			},
 			`${process.env.MAILTRAP_USER}`,
-			{ expiresIn: "1h" }
+			{ expiresIn: '1h' }
 		);
 
-		res.status(200).json({ email: "Email confirmed", token: tokenLogin });
+		res.status(200).json({ email: 'Email confirmed', token: tokenLogin });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -159,7 +162,7 @@ exports.login = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Invalid data");
+			const error = new Error('Invalid data');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
@@ -168,13 +171,13 @@ exports.login = async (req, res, next) => {
 		const password = req.body.password;
 		const user = await User.findOne({ email: email });
 		if (!user) {
-			const error = new Error("Invalid user data");
+			const error = new Error('Invalid user data');
 			error.statusCode = 422;
 			throw error;
 		}
 		const isPasswordCorrect = await bcrypt.compare(password, user.password);
 		if (!isPasswordCorrect) {
-			const error = new Error("Invalid user data");
+			const error = new Error('Invalid user data');
 			error.statusCode = 422;
 			throw error;
 		}
@@ -186,8 +189,7 @@ exports.login = async (req, res, next) => {
 				blocked: user.blocked,
 				emailConfirm: user.active,
 			},
-			`${process.env.MAILTRAP_USER}`,
-			{ expiresIn: "1h" }
+			`${process.env.MAILTRAP_USER}`
 		);
 
 		res.status(200).json({
@@ -207,7 +209,7 @@ exports.tokenToResetPassword = async (req, res, next) => {
 		const email = req.body.email;
 		const user = await User.findOne({ email: email });
 		if (!user) {
-			const error = new Error("No user found with that email address");
+			const error = new Error('No user found with that email address');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -217,7 +219,7 @@ exports.tokenToResetPassword = async (req, res, next) => {
 			await user.save();
 		}
 		const tokenReset = new TokenReset({
-			token: crypto.randomBytes(32).toString("hex"),
+			token: crypto.randomBytes(32).toString('hex'),
 		});
 		tokenReset.save();
 		user.tokenToResetPw = tokenReset._id;
@@ -225,14 +227,14 @@ exports.tokenToResetPassword = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: `${process.env.MAILTRAP_FROM_MAIL}`,
-			subject: "Reset your password",
+			from: `${process.env.MAIL_FROM_MAIL}`,
+			subject: 'Reset your password',
 			html: `<h1>You asked to password change</h1>
-					<p>To reset your password click this <a href="http://localhost:8080/auth/resetPassword/${tokenReset.token}">link</a></p>`,
+					<p>To reset your password click this <a href="${process.env.FRONTEND_URL}/auth/reset-password/${tokenReset.token}">link</a></p>`,
 		};
 		sendEmail(msg);
 		res.status(200).json({
-			message: "Link to reset password was sent to email",
+			message: 'Link to reset password was sent to email',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -248,24 +250,24 @@ exports.resetPassword = async (req, res, next) => {
 		const tokenReset = req.params.token;
 		const token = await TokenReset.findOne({ token: tokenReset });
 		if (!token) {
-			const error = new Error("Token not found");
+			const error = new Error('Token not found');
 			error.statusCode = 404;
 			throw error;
 		}
 
 		if (token.hasExpired()) {
-			const error = new Error("Token expired");
+			const error = new Error('Token expired');
 			error.statusCode = 422;
 			throw error;
 		}
 		const user = await User.findOne({ tokenToResetPw: token._id });
 		if (!user) {
-			const error = new Error("No user found with that email");
+			const error = new Error('No user found with that email');
 			error.statusCode = 404;
 			throw error;
 		}
 		if (user.tokenToResetPw.toString() !== token._id.toString()) {
-			const error = new Error("Invalid token");
+			const error = new Error('Invalid token');
 			error.statusCode = 422;
 			throw error;
 		}
@@ -281,13 +283,13 @@ exports.resetPassword = async (req, res, next) => {
 
 		const msg = {
 			to: email,
-			from: `${process.env.MAILTRAP_FROM_MAIL}`,
-			subject: "Your password was successfully reset",
+			from: `${process.env.MAILT_FROM_MAIL}`,
+			subject: 'Your password was successfully reset',
 			html: `<h1>Congrats, your password was successfully reset</h1>`,
 		};
 		sendEmail(msg);
 		res.status(200).json({
-			message: "Password was restarted",
+			message: 'Password was restarted',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -298,12 +300,24 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 const sendEmail = (msg) => {
-	transporter.sendMail(msg, (err, info) => {
-		if (err) {
+	// transporter.sendMail(msg, (err, info) => {
+	// 	if (err) {
+	// 		const error = new Error("Can't send email");
+	// 		error.statusCode = 500;
+	// 		error.data = err;
+	// 		throw error;
+	// 	}
+	// });
+	sgMail
+		.send(msg)
+		.then(() => {
+			console.log('Email sent');
+		})
+		.catch((err) => {
+			console.log(err);
 			const error = new Error("Can't send email");
 			error.statusCode = 500;
 			error.data = err;
 			throw error;
-		}
-	});
+		});
 };
