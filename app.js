@@ -1,31 +1,41 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const dotenv = require("dotenv");
+const express = require('express');
+const mongoose = require('mongoose');
 
-const authRoutes = require("./routes/auth");
-const wordRoutes = require("./routes/word");
-const userRoutes = require("./routes/user");
-const unitRoutes = require("./routes/unit");
-const favRoutes = require("./routes/favourites");
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './.env') });
+const cors = require('cors');
 
-dotenv.config();
+const authRoutes = require('./routes/auth');
+const wordRoutes = require('./routes/word');
+const userRoutes = require('./routes/user');
+const unitRoutes = require('./routes/unit');
+const favRoutes = require('./routes/favourites');
 
 const MONGODB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.8ypuv.mongodb.net/leareng?retryWrites=true&w=majority`;
 
+const allowedOrigins = [
+	'http://localhost:3000',
+	'https://sendgrid.api-docs.io',
+];
+
+const options = {
+	origin: allowedOrigins,
+};
+
 const app = express();
 
-app.use(bodyParser.json());
+app.use(cors(options));
+app.use(express.json());
 
-app.use("/auth", authRoutes);
+app.use('/auth', authRoutes);
 
-app.use("/words", wordRoutes);
+app.use('/words', wordRoutes);
 
-app.use("/users", userRoutes);
+app.use('/users', userRoutes);
 
-app.use("/units", unitRoutes);
+app.use('/units', unitRoutes);
 
-app.use("/favourites", favRoutes);
+app.use('/favourites', favRoutes);
 
 app.use((err, req, res, next) => {
 	const status = err.statusCode || 500;
@@ -41,9 +51,9 @@ app.use((err, req, res, next) => {
 mongoose
 	.connect(MONGODB_URI)
 	.then(() => {
-		console.log("database connected");
+		console.log('database connected');
 		app.listen(8080, () => {
-			console.log("app listening on port 8080");
+			console.log('app listening on port 8080');
 		});
 	})
 	.catch((err) => {
