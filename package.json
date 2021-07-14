@@ -2,10 +2,14 @@
 	"name": "leareng",
 	"version": "1.0.0",
 	"description": "",
+	"engines": {
+		"node": "14.15.5"
+	},
 	"main": "index.js",
 	"scripts": {
-		"start": "nodemon app.js",
-		"test": "mocha --timeout 10000"
+		"start": "node app.js",
+		"test": "mocha --timeout 10000",
+		"start:dev": "nodemon app.js"
 	},
 	"author": "",
 	"license": "ISC",

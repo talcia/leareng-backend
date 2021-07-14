@@ -37,6 +37,10 @@ app.use('/units', unitRoutes);
 
 app.use('/favourites', favRoutes);
 
+app.route('/').get(function (req, res) {
+	res.sendFile(process.cwd() + '/index.html');
+});
+
 app.use((err, req, res, next) => {
 	const status = err.statusCode || 500;
 	const message = err.message;
