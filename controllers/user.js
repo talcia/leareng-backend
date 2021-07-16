@@ -1,8 +1,8 @@
-const { validationResult } = require("express-validator/check");
+const { validationResult } = require('express-validator/check');
 
-const User = require("../models/user");
-const Word = require("../models/word");
-const Unit = require("../models/unit");
+const User = require('../models/User');
+const Word = require('../models/Word');
+const Unit = require('../models/Unit');
 
 exports.getUsers = async (req, res, next) => {
 	try {
@@ -31,7 +31,7 @@ exports.getUser = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -57,7 +57,7 @@ exports.updateUser = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
+			const error = new Error('Validation faild');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
@@ -65,12 +65,12 @@ exports.updateUser = async (req, res, next) => {
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
-			const error = new Error("Could not find user");
+			const error = new Error('Could not find user');
 			error.statusCode = 404;
 			throw error;
 		}
 		if (updatedUser._id.toString() !== req.userId) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -106,17 +106,17 @@ exports.deleteUser = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("Could not find user");
+			const error = new Error('Could not find user');
 			error.statusCode = 404;
 			throw error;
 		}
 		if (user._id.toString() !== req.userId && +req.userRole !== 0) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}
 		await User.findByIdAndRemove(userId);
-		res.status(200).json({ user: "User deleted" });
+		res.status(200).json({ user: 'User deleted' });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -130,7 +130,7 @@ exports.getWords = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -139,7 +139,7 @@ exports.getWords = async (req, res, next) => {
 			user._id.toString() !== req.userId.toString() &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not authorized");
+			const error = new Error('Not authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -170,7 +170,7 @@ exports.getWord = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -178,7 +178,7 @@ exports.getWord = async (req, res, next) => {
 			user._id.toString() !== req.userId.toString() &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not authorized");
+			const error = new Error('Not authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -186,7 +186,7 @@ exports.getWord = async (req, res, next) => {
 
 		const word = await Word.findById(wordId);
 		if (!word) {
-			const error = new Error("Word with this id not find");
+			const error = new Error('Word with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -215,7 +215,7 @@ exports.getUnits = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -223,7 +223,7 @@ exports.getUnits = async (req, res, next) => {
 			user._id.toString() !== req.userId.toString() &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not authorized");
+			const error = new Error('Not authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -257,7 +257,7 @@ exports.getUnit = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -265,7 +265,7 @@ exports.getUnit = async (req, res, next) => {
 			user._id.toString() !== req.userId.toString() &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not authorized");
+			const error = new Error('Not authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -273,7 +273,7 @@ exports.getUnit = async (req, res, next) => {
 
 		const unit = await Unit.findById(unitId);
 		if (!unit) {
-			const error = new Error("Unit with this id not find");
+			const error = new Error('Unit with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -303,7 +303,7 @@ exports.blockUser = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -315,7 +315,7 @@ exports.blockUser = async (req, res, next) => {
 		}
 
 		if (user.blocked) {
-			const error = new Error("User with this id is already blocked");
+			const error = new Error('User with this id is already blocked');
 			error.statusCode = 403;
 			throw error;
 		}
@@ -324,7 +324,7 @@ exports.blockUser = async (req, res, next) => {
 		user.save();
 
 		res.status(200).json({
-			message: "User has been blocked",
+			message: 'User has been blocked',
 			user: {
 				_id: user._id,
 				blocked: user.blocked,
@@ -343,12 +343,12 @@ exports.unblockUser = async (req, res, next) => {
 		const userId = req.params.id;
 		const user = await User.findById(userId);
 		if (!user) {
-			const error = new Error("User with this id not find");
+			const error = new Error('User with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
 		if (!user.blocked) {
-			const error = new Error("User with this id is not blocked");
+			const error = new Error('User with this id is not blocked');
 			error.statusCode = 422;
 			throw error;
 		}
@@ -357,7 +357,7 @@ exports.unblockUser = async (req, res, next) => {
 		user.save();
 
 		res.status(200).json({
-			message: "User has been unblocked",
+			message: 'User has been unblocked',
 			user: {
 				_id: user._id,
 				blocked: user.blocked,
@@ -400,7 +400,7 @@ exports.addFavouritesUnits = async (req, res, next) => {
 
 		const unit = await Unit.findById(unitId);
 		if (!unit) {
-			const error = new Error("Unit with this id not find");
+			const error = new Error('Unit with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -410,7 +410,7 @@ exports.addFavouritesUnits = async (req, res, next) => {
 			throw error;
 		}
 		if (unit.private) {
-			const error = new Error("Not authorized");
+			const error = new Error('Not authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -420,7 +420,7 @@ exports.addFavouritesUnits = async (req, res, next) => {
 		await unit.save();
 		await user.save();
 		res.status(200).json({
-			message: "Unit succesfully added to favourites units",
+			message: 'Unit succesfully added to favourites units',
 			user: {
 				_id: user._id,
 				favouritesUnits: user.favouritesUnits,
@@ -442,7 +442,7 @@ exports.deleteFavouritesUnits = async (req, res, next) => {
 
 		const unit = await Unit.findById(unitId);
 		if (!unit) {
-			const error = new Error("Unit with this id not find");
+			const error = new Error('Unit with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -451,7 +451,7 @@ exports.deleteFavouritesUnits = async (req, res, next) => {
 		await unit.save();
 		await user.save();
 		res.status(200).json({
-			message: "Unit succesfully deleted from favourites units",
+			message: 'Unit succesfully deleted from favourites units',
 			user: {
 				_id: user._id,
 				favouritesUnits: user.favouritesUnits,

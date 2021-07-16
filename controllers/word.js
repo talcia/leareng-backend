@@ -1,8 +1,8 @@
-const { validationResult } = require("express-validator/check");
+const { validationResult } = require('express-validator/check');
 
-const User = require("../models/user");
-const Unit = require("../models/unit");
-const Word = require("../models/word");
+const User = require('../models/User');
+const Unit = require('../models/Unit');
+const Word = require('../models/Word');
 
 exports.getWords = async (req, res, next) => {
 	try {
@@ -21,7 +21,7 @@ exports.getWord = async (req, res, next) => {
 		const wordId = req.params.id;
 		const word = await Word.findById(wordId);
 		if (!word) {
-			const error = new Error("Word with this id not find");
+			const error = new Error('Word with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -38,14 +38,14 @@ exports.updateWord = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
+			const error = new Error('Validation faild');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
 		}
 		const updatedWord = await Word.findById(req.params.id);
 		if (!updatedWord) {
-			const error = new Error("Could not find word");
+			const error = new Error('Could not find word');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -54,7 +54,7 @@ exports.updateWord = async (req, res, next) => {
 			updatedWord.creator._id.toString() !== req.userId &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -75,9 +75,9 @@ exports.updateWord = async (req, res, next) => {
 exports.deleteWord = async (req, res, next) => {
 	try {
 		const wordId = req.params.id;
-		const updatedWord = await Word.findById(wordId).populate("creator");
+		const updatedWord = await Word.findById(wordId).populate('creator');
 		if (!updatedWord) {
-			const error = new Error("Could not find word");
+			const error = new Error('Could not find word');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -86,7 +86,7 @@ exports.deleteWord = async (req, res, next) => {
 			updatedWord.creator._id.toString() !== req.userId &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -103,7 +103,7 @@ exports.deleteWord = async (req, res, next) => {
 		unit.words.pull(wordId);
 		await unit.save();
 
-		res.status(200).json({ word: "Word deleted" });
+		res.status(200).json({ word: 'Word deleted' });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -120,7 +120,7 @@ exports.getWordFromLangToLang = async (req, res, next) => {
 		const words = await Word.find({ fromLang: fromLang, toLang: toLang });
 
 		if (words.length === 0) {
-			const error = new Error("Could not find words for this language");
+			const error = new Error('Could not find words for this language');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -150,7 +150,7 @@ exports.getRandomWords = async (req, res, next) => {
 
 		if (numberOfRandomWords <= 0) {
 			const error = new Error(
-				"Number must be a positive number greater than zero"
+				'Number must be a positive number greater than zero'
 			);
 			error.statusCode = 404;
 			throw error;
@@ -167,7 +167,7 @@ exports.getRandomWords = async (req, res, next) => {
 		]);
 
 		if (words.length === 0) {
-			const error = new Error("Could not find words for this language");
+			const error = new Error('Could not find words for this language');
 			error.statusCode = 404;
 			throw error;
 		}
