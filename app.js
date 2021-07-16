@@ -55,9 +55,10 @@ app.use((err, req, res, next) => {
 mongoose
 	.connect(MONGODB_URI)
 	.then(() => {
+		const port = process.env.PORT || 5000;
 		console.log('database connected');
-		app.listen(8080, () => {
-			console.log('app listening on port 8080');
+		app.listen(port, () => {
+			console.log(`app listening on port ${port}`);
 		});
 	})
 	.catch((err) => {
