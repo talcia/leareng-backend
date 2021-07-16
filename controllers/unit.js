@@ -1,14 +1,14 @@
-const { validationResult } = require("express-validator/check");
+const { validationResult } = require('express-validator/check');
 
-const Unit = require("../models/unit");
-const User = require("../models/user");
-const Word = require("../models/word");
+const Unit = require('../models/Unit');
+const User = require('../models/User');
+const Word = require('../models/Word');
 
 exports.createUnit = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
+			const error = new Error('Validation faild');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
@@ -35,7 +35,7 @@ exports.createUnit = async (req, res, next) => {
 		await user.save();
 
 		res.status(201).json({
-			message: "Unit created",
+			message: 'Unit created',
 			unit: createdUnit,
 			creator: { _id: creator._id, name: creator.name },
 		});
@@ -66,7 +66,7 @@ exports.getUnit = async (req, res, next) => {
 		const unitId = req.params.id;
 		const unit = await Unit.findById(unitId);
 		if (!unit) {
-			const error = new Error("unit with this id not find");
+			const error = new Error('unit with this id not find');
 			error.statusCode = 404;
 			throw error;
 		}
@@ -83,7 +83,7 @@ exports.updateUnit = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
+			const error = new Error('Validation faild');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
@@ -99,7 +99,7 @@ exports.updateUnit = async (req, res, next) => {
 			updatedUnit.creator._id.toString() !== req.userId &&
 			+req.userRole !== 0
 		) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -121,15 +121,15 @@ exports.updateUnit = async (req, res, next) => {
 exports.deleteUnit = async (req, res, next) => {
 	try {
 		const unitId = req.params.id;
-		const unit = await Unit.findById(unitId).populate("creator");
+		const unit = await Unit.findById(unitId).populate('creator');
 		if (!unit) {
-			const error = new Error("Could not find unit");
+			const error = new Error('Could not find unit');
 			error.statusCode = 404;
 			throw error;
 		}
 		const user = await User.findById(req.userId);
 		if (unit.creator._id.toString() !== req.userId && +req.userRole !== 0) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -143,7 +143,7 @@ exports.deleteUnit = async (req, res, next) => {
 		await user.save();
 		await Unit.findByIdAndRemove(unitId);
 		await Word.deleteMany({ unit: unit._id });
-		res.status(200).json({ unit: "Unit deleted" });
+		res.status(200).json({ unit: 'Unit deleted' });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -156,7 +156,7 @@ exports.addWordToUnit = async (req, res, next) => {
 	try {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
-			const error = new Error("Validation faild");
+			const error = new Error('Validation faild');
 			error.statusCode = 422;
 			error.data = errors.array();
 			throw error;
@@ -165,7 +165,7 @@ exports.addWordToUnit = async (req, res, next) => {
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
-			const error = new Error("Unit with this id is not find");
+			const error = new Error('Unit with this id is not find');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -193,7 +193,7 @@ exports.addWordToUnit = async (req, res, next) => {
 		await unit.save();
 
 		res.status(201).json({
-			message: "Word succesfully added to unit",
+			message: 'Word succesfully added to unit',
 			word: createdWord,
 			creator: { _id: creator._id, name: creator.name },
 			unit: { _id: unit._id, name: unit.name },
@@ -212,7 +212,7 @@ exports.getWordsFromUnit = async (req, res, next) => {
 
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
-			const error = new Error("Unit with this id is not find");
+			const error = new Error('Unit with this id is not find');
 			error.statusCode = 401;
 			throw error;
 		}
@@ -222,7 +222,7 @@ exports.getWordsFromUnit = async (req, res, next) => {
 			+req.userRole !== 0 &&
 			unit.private !== false
 		) {
-			const error = new Error("Not Authorized");
+			const error = new Error('Not Authorized');
 			error.statusCode = 401;
 			throw error;
 		}

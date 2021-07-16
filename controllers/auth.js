@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail');
 
-const User = require('../models/user');
+const User = require('../models/User');
 const TokenSignup = require('../models/TokenSignup');
 const TokenReset = require('../models/TokenReset');
 
