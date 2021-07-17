@@ -16,7 +16,7 @@ const MONGODB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_P
 const allowedOrigins = [
 	'http://localhost:3000',
 	'https://sendgrid.api-docs.io',
-	'https://leareng.netlify.app/',
+	'https://leareng.netlify.app',
 ];
 
 const options = {
