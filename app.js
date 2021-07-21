@@ -14,9 +14,10 @@ const favRoutes = require('./routes/favourites');
 const MONGODB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.8ypuv.mongodb.net/leareng?retryWrites=true&w=majority`;
 
 const allowedOrigins = [
-	'http://localhost:3000',
-	'https://sendgrid.api-docs.io',
-	'https://leareng.netlify.app',
+	'*',
+	// 'http://localhost:3000',
+	// 'https://sendgrid.api-docs.io',
+	// 'https://leareng.netlify.app',
 ];
 
 const options = {
