@@ -237,6 +237,7 @@ exports.getUnits = async (req, res, next) => {
 			words: unit.words,
 			fromLang: unit.fromLang,
 			toLang: unit.toLang,
+			popularity: unit.popularity,
 		}));
 		res.status(200).json({
 			user: {

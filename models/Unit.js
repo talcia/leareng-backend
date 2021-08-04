@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const unitSchema = new Schema(
@@ -26,16 +26,20 @@ const unitSchema = new Schema(
 		words: [
 			{
 				type: Schema.Types.ObjectId,
-				ref: "Word",
+				ref: 'Word',
 			},
 		],
 		creator: {
 			type: Schema.Types.ObjectId,
-			ref: "User",
+			ref: 'User',
 			require: true,
+		},
+		popularity: {
+			type: Number,
+			default: 0,
 		},
 	},
 	{ timestamps: true }
 );
 
-module.exports = mongoose.model("Unit", unitSchema);
+module.exports = mongoose.model('Unit', unitSchema);

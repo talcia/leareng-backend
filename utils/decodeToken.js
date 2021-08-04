@@ -1,13 +1,13 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 exports.decodeToken = (req, res, next) => {
-	const authHeader = req.get("Authorization");
+	const authHeader = req.get('Authorization');
 	if (!authHeader) {
-		const error = new Error("Not authorizated");
+		const error = new Error('Not authorizated');
 		error.statusCode = 401;
 		next(error);
 	}
-	const token = authHeader.split(" ")[1];
+	const token = authHeader.split(' ')[1];
 	let decodedToken;
 	try {
 		decodedToken = jwt.verify(token, `${process.env.MAILTRAP_USER}`);
