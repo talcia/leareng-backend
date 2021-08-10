@@ -238,6 +238,7 @@ exports.getUnits = async (req, res, next) => {
 			fromLang: unit.fromLang,
 			toLang: unit.toLang,
 			popularity: unit.popularity,
+			creator: unit.creator,
 		}));
 		res.status(200).json({
 			user: {
@@ -398,7 +399,6 @@ exports.addFavouritesUnits = async (req, res, next) => {
 		const userId = req.userId;
 		const user = await User.findById(userId);
 		const unitId = req.params.unitId;
-
 		const unit = await Unit.findById(unitId);
 		if (!unit) {
 			const error = new Error('Unit with this id not find');
@@ -415,16 +415,27 @@ exports.addFavouritesUnits = async (req, res, next) => {
 			error.statusCode = 401;
 			throw error;
 		}
+		if (user.favouritesUnits.includes(unitId)) {
+			const error = new Error(
+				'Unit has been already added to favourties'
+			);
+			error.statusCode = 401;
+			throw error;
+		}
 		user.favouritesUnits.push(unit._id);
 		console.log(unit.popularity);
 		unit.popularity = +unit.popularity + 1;
 		await unit.save();
 		await user.save();
 		res.status(200).json({
+			status: 200,
 			message: 'Unit succesfully added to favourites units',
 			user: {
 				_id: user._id,
 				favouritesUnits: user.favouritesUnits,
+			},
+			unit: {
+				popularity: unit.popularity,
 			},
 		});
 	} catch (err) {
@@ -447,15 +458,26 @@ exports.deleteFavouritesUnits = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
+		if (!user.favouritesUnits.includes(unitId)) {
+			const error = new Error(
+				'Unit with this id is not liked by this user'
+			);
+			error.statusCode = 404;
+			throw error;
+		}
 		user.favouritesUnits.pull(unit._id);
 		unit.popularity = +unit.popularity - 1;
 		await unit.save();
 		await user.save();
 		res.status(200).json({
+			status: 200,
 			message: 'Unit succesfully deleted from favourites units',
 			user: {
 				_id: user._id,
 				favouritesUnits: user.favouritesUnits,
+			},
+			unit: {
+				popularity: unit.popularity,
 			},
 		});
 	} catch (err) {
