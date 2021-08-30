@@ -13,6 +13,7 @@ exports.createUnit = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
+
 		const user = await User.findById(req.userId);
 
 		const unitName = req.body.name;
