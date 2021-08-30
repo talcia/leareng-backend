@@ -73,4 +73,18 @@ router.get(
 	unitController.getWordsFromUnit
 );
 
+router.get(
+	'/search/:keyWord',
+	isAuth,
+	isBlocked,
+	unitController.getUnitByKeyWord
+);
+
+router.get(
+	'/:fromLang/:toLang',
+	isAuth,
+	isBlocked,
+	unitController.getUnitFromLangToLang
+);
+
 module.exports = router;
