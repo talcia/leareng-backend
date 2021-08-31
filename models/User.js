@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
@@ -28,11 +28,11 @@ const userSchema = new Schema({
 	},
 	tokenToSignup: {
 		type: Schema.Types.ObjectId,
-		ref: "TokenSignup",
+		ref: 'TokenSignup',
 	},
 	tokenToResetPw: {
 		type: Schema.Types.ObjectId,
-		ref: "TokenReset",
+		ref: 'TokenReset',
 	},
 	blocked: {
 		type: Boolean,
@@ -41,20 +41,20 @@ const userSchema = new Schema({
 	words: [
 		{
 			type: Schema.Types.ObjectId,
-			ref: "Word",
+			ref: 'Word',
 		},
 	],
 	units: [
 		{
 			type: Schema.Types.ObjectId,
-			ref: "Unit",
+			ref: 'Unit',
 		},
 	],
-	favouritesUnits: [{ type: Schema.Types.ObjectId, ref: "Unit" }],
+	favouritesUnits: [{ type: Schema.Types.ObjectId, ref: 'Unit' }],
 	score: {
 		type: Number,
 		default: 0,
 	},
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);
