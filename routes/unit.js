@@ -18,6 +18,8 @@ router.post(
 			.trim()
 			.not()
 			.isEmpty()
+			.isLength({ max: 35 })
+			.withMessage("Unit name can't be longer than 34 character")
 			.isLength({ min: 3 })
 			.withMessage('Unit name must be at least 3 character long'),
 		body('fromLang').trim().not().isEmpty(),
@@ -33,7 +35,13 @@ router.get('/:id', isAuth, isEmailConfirm, unitController.getUnit);
 router.patch(
 	'/:id',
 	[
-		body('name').trim().not().isEmpty(),
+		body('name')
+			.trim()
+			.isLength({ max: 35 })
+			.withMessage("Unit name can't be longer than 34 character")
+			.isLength({ min: 3 })
+			.not()
+			.isEmpty(),
 		body('fromLang').trim().not().isEmpty(),
 		body('toLang').trim().not().isEmpty(),
 	],
@@ -56,12 +64,12 @@ router.post(
 	isAuth,
 	isEmailConfirm,
 	isBlocked,
-	[
-		body('word').trim().not().isEmpty(),
-		body('translation').trim().not().isEmpty(),
-		body('fromLang').trim().not().isEmpty(),
-		body('toLang').trim().not().isEmpty(),
-	],
+	// [
+	// 	body('word').trim().not().isEmpty(),
+	// 	body('translation').trim().not().isEmpty(),
+	// 	body('fromLang').trim().not().isEmpty(),
+	// 	body('toLang').trim().not().isEmpty(),
+	// ],
 	unitController.addWordToUnit
 );
 
