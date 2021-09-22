@@ -95,7 +95,6 @@ exports.updateUser = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
-		console.log('witam');
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
@@ -253,14 +252,7 @@ exports.getUnits = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
-		if (
-			user._id.toString() !== req.userId.toString() &&
-			+req.userRole !== 0
-		) {
-			const error = new Error('Not authorized');
-			error.statusCode = 401;
-			throw error;
-		}
+
 		const userUnits = await Unit.find({ creator: userId }).sort({
 			createdAt: -1,
 		});

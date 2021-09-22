@@ -64,12 +64,12 @@ router.post(
 	isAuth,
 	isEmailConfirm,
 	isBlocked,
-	[
-		body('word').trim().not().isEmpty(),
-		body('translation').trim().not().isEmpty(),
-		body('fromLang').trim().not().isEmpty(),
-		body('toLang').trim().not().isEmpty(),
-	],
+	// [
+	// 	body('word').trim().not().isEmpty(),
+	// 	body('translation').trim().not().isEmpty(),
+	// 	body('fromLang').trim().not().isEmpty(),
+	// 	body('toLang').trim().not().isEmpty(),
+	// ],
 	unitController.addWordToUnit
 );
 

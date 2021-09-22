@@ -182,6 +182,9 @@ exports.addWordToUnit = async (req, res, next) => {
 		const fromLang = req.body.fromLang;
 		const toLang = req.body.toLang;
 		let creator;
+		console.log(req.body);
+		console.log(word);
+		console.log(translation);
 
 		const createdWord = new Word({
 			word: word,
@@ -191,6 +194,8 @@ exports.addWordToUnit = async (req, res, next) => {
 			creator: req.userId,
 			unit: unit._id,
 		});
+
+		console.log(createdWord);
 
 		await createdWord.save();
 		creator = user;
