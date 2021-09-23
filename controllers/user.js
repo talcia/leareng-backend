@@ -74,6 +74,7 @@ exports.updateUser = async (req, res, next) => {
 			error.statusCode = 401;
 			throw error;
 		}
+
 		updatedUser.email = updatedUser.email;
 		updatedUser.name = req.body.name;
 		updatedUser.avatarUrl = req.body.avatarUrl;
@@ -83,6 +84,7 @@ exports.updateUser = async (req, res, next) => {
 		updatedUser.score = updatedUser.score;
 
 		await updatedUser.save();
+
 		res.status(201).json({
 			user: {
 				_id: updatedUser._id,
