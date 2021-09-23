@@ -13,6 +13,7 @@ exports.createUnit = async (req, res, next) => {
 			error.data = errors.array();
 			throw error;
 		}
+
 		const user = await User.findById(req.userId);
 
 		const unitName = req.body.name;
@@ -20,6 +21,12 @@ exports.createUnit = async (req, res, next) => {
 		const toLang = req.body.toLang;
 		const isPrivate = req.body.private;
 		let creator;
+
+		if (fromLang === toLang) {
+			const error = new Error("From lang and to lang can't be the same");
+			error.statusCode = 422;
+			throw error;
+		}
 
 		const createdUnit = new Unit({
 			name: unitName,
@@ -175,6 +182,9 @@ exports.addWordToUnit = async (req, res, next) => {
 		const fromLang = req.body.fromLang;
 		const toLang = req.body.toLang;
 		let creator;
+		console.log(req.body);
+		console.log(word);
+		console.log(translation);
 
 		const createdWord = new Word({
 			word: word,
@@ -184,6 +194,8 @@ exports.addWordToUnit = async (req, res, next) => {
 			creator: req.userId,
 			unit: unit._id,
 		});
+
+		console.log(createdWord);
 
 		await createdWord.save();
 		creator = user;
@@ -236,6 +248,73 @@ exports.getWordsFromUnit = async (req, res, next) => {
 			name: unit.name,
 			words: words,
 		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getUnitFromLangToLang = async (req, res, next) => {
+	try {
+		const fromLang = req.params.fromLang;
+		const toLang = req.params.toLang;
+
+		const units = await Unit.find({ fromLang: fromLang, toLang: toLang });
+
+		if (units.length === 0) {
+			const error = new Error('Could not find units for this language');
+			error.statusCode = 404;
+			throw error;
+		}
+
+		const modifyUnits = [...units].map((unit) => ({
+			_id: unit._id,
+			name: unit.name,
+			creator: unit.creator,
+			fromLang: unit.fromLang,
+			toLang: unit.toLang,
+			popularity: unit.popularity,
+			words: unit.words,
+		}));
+
+		res.status(200).json({ units: modifyUnits });
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getUnitByKeyWord = async (req, res, next) => {
+	try {
+		const keyWord = req.params.keyWord;
+		console.log(keyWord);
+		const units = await Unit.find({
+			name: { $regex: keyWord, $options: 'i' },
+		});
+
+		console.log(units);
+
+		if (units.length === 0) {
+			const error = new Error('Could not find units for this key word');
+			error.statusCode = 404;
+			throw error;
+		}
+
+		const modifyUnits = [...units].map((unit) => ({
+			_id: unit._id,
+			name: unit.name,
+			creator: unit.creator,
+			fromLang: unit.fromLang,
+			toLang: unit.toLang,
+			popularity: unit.popularity,
+			words: unit.words,
+		}));
+
+		res.status(200).json({ units: modifyUnits });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

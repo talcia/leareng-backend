@@ -35,6 +35,7 @@ exports.getUser = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
+
 		res.status(200).json({
 			user: {
 				_id: user._id,
@@ -43,9 +44,41 @@ exports.getUser = async (req, res, next) => {
 				avatarUrl: user.avatarUrl,
 				role: user.role,
 				words: user.words,
+				favouritesUnits: user.favouritesUnits,
+				blocked: user.blocked,
+				words: user.words,
+				active: user.active,
 			},
 		});
 	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getUserShorter = async (req, res, next) => {
+	try {
+		const userId = req.params.id;
+		const user = await User.findById(userId);
+		if (!user) {
+			const error = new Error('User with this id not find');
+			error.statusCode = 404;
+			throw error;
+		}
+
+		res.status(200).json({
+			user: {
+				_id: user._id,
+				email: user.email,
+				name: user.name,
+				avatarUrl: user.avatarUrl,
+				units: user.unit,
+			},
+		});
+	} catch (err) {
+		console.log(err);
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -221,14 +254,7 @@ exports.getUnits = async (req, res, next) => {
 			error.statusCode = 404;
 			throw error;
 		}
-		if (
-			user._id.toString() !== req.userId.toString() &&
-			+req.userRole !== 0
-		) {
-			const error = new Error('Not authorized');
-			error.statusCode = 401;
-			throw error;
-		}
+
 		const userUnits = await Unit.find({ creator: userId }).sort({
 			createdAt: -1,
 		});
