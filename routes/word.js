@@ -1,34 +1,34 @@
-const express = require("express");
-const { body } = require("express-validator/check");
+const express = require('express');
+const { body } = require('express-validator/check');
 
-const isAuth = require("../middleware/is-auth");
-const isEmailConfirm = require("../middleware/is-email-confirm");
-const isBlocked = require("../middleware/is-user-blocked");
-const wordController = require("../controllers/word");
+const isAuth = require('../middleware/is-auth');
+const isEmailConfirm = require('../middleware/is-email-confirm');
+const isBlocked = require('../middleware/is-user-blocked');
+const wordController = require('../controllers/word');
 
 const router = express.Router();
 
-router.get("/", isAuth, isEmailConfirm, wordController.getWords);
+router.get('/', isAuth, isEmailConfirm, wordController.getWords);
 
-router.get("/:id", isAuth, isEmailConfirm, wordController.getWord);
+router.get('/:id', isAuth, isEmailConfirm, wordController.getWord);
 
-router.get("/recent/:number", isAuth, isBlocked, wordController.getRecentWords);
+router.get('/recent/:number', isAuth, isBlocked, wordController.getRecentWords);
 
 router.get(
-	"/difficulty/:number",
+	'/difficulty/:number',
 	isAuth,
 	isBlocked,
 	wordController.getDifficultyWords
 );
 
 router.patch(
-	"/:id",
+	'/:id',
 	isBlocked,
 	[
-		body("word").trim().not().isEmpty(),
-		body("translation").trim().not().isEmpty(),
-		body("fromLang").trim().not().isEmpty(),
-		body("toLang").trim().not().isEmpty(),
+		body('word').trim().not().isEmpty(),
+		body('translation').trim().not().isEmpty(),
+		body('fromLang').trim().not().isEmpty(),
+		body('toLang').trim().not().isEmpty(),
 	],
 	isAuth,
 	isEmailConfirm,
@@ -36,7 +36,7 @@ router.patch(
 );
 
 router.delete(
-	"/:id",
+	'/:id',
 	isAuth,
 	isBlocked,
 	isEmailConfirm,
@@ -44,14 +44,14 @@ router.delete(
 );
 
 router.get(
-	"/:fromLang/:toLang",
+	'/:fromLang/:toLang',
 	isAuth,
 	isBlocked,
 	wordController.getWordFromLangToLang
 );
 
 router.get(
-	"/:fromLang/:toLang/:randomNumber",
+	'/:fromLang/:toLang/:randomNumber',
 	isAuth,
 	isBlocked,
 	wordController.getRandomWords
