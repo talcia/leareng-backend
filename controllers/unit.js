@@ -220,12 +220,10 @@ exports.addWordToUnit = async (req, res, next) => {
 
 exports.getWordsFromUnit = async (req, res, next) => {
 	try {
-		const user = await User.findById(req.userId);
-
 		const unit = await Unit.findById(req.params.id);
 		if (!unit) {
 			const error = new Error('Unit with this id is not find');
-			error.statusCode = 401;
+			error.statusCode = 404;
 			throw error;
 		}
 
@@ -240,9 +238,9 @@ exports.getWordsFromUnit = async (req, res, next) => {
 		}
 
 		const words = await Word.find({
-			creator: req.userId,
 			unit: unit._id,
 		}).sort({ createdAt: -1 });
+
 		res.status(200).json({
 			unitId: unit._id,
 			name: unit.name,
@@ -315,6 +313,67 @@ exports.getUnitByKeyWord = async (req, res, next) => {
 		}));
 
 		res.status(200).json({ units: modifyUnits });
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getRandomWordsFromUnit = async (req, res, next) => {
+	try {
+		const unitId = req.params.unitId;
+		const numberOfRandomWords = req.params.randomNumber;
+		const reverseLang = req.params.reverseLang;
+
+		console.log(numberOfRandomWords);
+
+		if (numberOfRandomWords <= 0) {
+			const error = new Error(
+				'Number must be a positive number greater than zero'
+			);
+			error.statusCode = 404;
+			throw error;
+		}
+
+		const unit = await Unit.findById(unitId);
+
+		if (!unit) {
+			const error = new Error('Unit with this id is not find');
+			error.statusCode = 404;
+			throw error;
+		}
+
+		if (unit.words.length === 0) {
+			const error = new Error('Could not find words for this unit');
+			error.statusCode = 404;
+			throw error;
+		}
+
+		const randomWords = unit.words.sort(() => 0.5 - Math.random());
+
+		const wordsIds = randomWords.slice(0, numberOfRandomWords);
+
+		const words = [];
+
+		for (let wordId of wordsIds) {
+			console.log(wordId);
+			const word = await Word.findById(wordId);
+			words.push(word);
+		}
+
+		const modifyWords = [...words].map((word) => ({
+			_id: word._id,
+			word: reverseLang ? word.word : word.translation,
+			translation: reverseLang ? word.translation : word.word,
+			fromLang: word.fromLang,
+			toLang: word.toLang,
+		}));
+
+		console.log(modifyWords);
+
+		res.status(200).json({ words: modifyWords });
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

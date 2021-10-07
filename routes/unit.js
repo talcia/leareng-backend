@@ -95,4 +95,11 @@ router.get(
 	unitController.getUnitFromLangToLang
 );
 
+router.get(
+	'/play/:unitId/:randomNumber/:reverseLang',
+	isAuth,
+	isBlocked,
+	unitController.getRandomWordsFromUnit
+);
+
 module.exports = router;
