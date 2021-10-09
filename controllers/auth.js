@@ -32,7 +32,7 @@ exports.signup = async (req, res, next) => {
 		const name = req.body.name;
 		const password = req.body.password;
 		const hashedPassword = await bcrypt.hash(password, 12);
-		const avatarUrl = req.body.avatarUrl || '';
+		const avatarUrl = '';
 
 		const tokenSignup = new TokenSignup({
 			token: crypto.randomBytes(32).toString('hex'),
@@ -300,14 +300,6 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 const sendEmail = (msg) => {
-	// transporter.sendMail(msg, (err, info) => {
-	// 	if (err) {
-	// 		const error = new Error("Can't send email");
-	// 		error.statusCode = 500;
-	// 		error.data = err;
-	// 		throw error;
-	// 	}
-	// });
 	sgMail
 		.send(msg)
 		.then(() => {

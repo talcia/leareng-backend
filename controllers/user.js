@@ -108,13 +108,56 @@ exports.updateUser = async (req, res, next) => {
 			throw error;
 		}
 
-		updatedUser.email = updatedUser.email;
 		updatedUser.name = req.body.name;
-		updatedUser.avatarUrl = req.body.avatarUrl;
-		updatedUser.role = updatedUser.role;
-		updatedUser.password = updatedUser.password;
-		updatedUser.words = updatedUser.words;
-		updatedUser.score = updatedUser.score;
+
+		await updatedUser.save();
+
+		res.status(201).json({
+			user: {
+				_id: updatedUser._id,
+				email: updatedUser.email,
+				name: updatedUser.name,
+				avatarUrl: updatedUser.avatarUrl,
+				role: updatedUser.role,
+				words: updatedUser.words,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.updateUserAvatar = async (req, res, next) => {
+	try {
+		console.log('witam');
+		const userId = req.params.id;
+		const updatedUser = await User.findById(userId);
+		if (!updatedUser) {
+			const error = new Error('Could not find user');
+			error.statusCode = 404;
+			throw error;
+		}
+		if (updatedUser._id.toString() !== req.userId) {
+			const error = new Error('Not Authorized');
+			error.statusCode = 401;
+			throw error;
+		}
+		console.log(req.body);
+		let imageUrl = req.body.image;
+		if (req.file) {
+			imageUrl = req.file.path.replace('\\', '/');
+		}
+		console.log(imageUrl);
+		if (!imageUrl) {
+			const error = new Error('No file picked');
+			error.statusCode = 422;
+			throw error;
+		}
+
+		updatedUser.avatarUrl = imageUrl;
 
 		await updatedUser.save();
 
