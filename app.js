@@ -6,7 +6,9 @@ require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 const cors = require('cors');
 const multer = require('multer');
+var multerS3 = require('multer-s3');
 const { v4: uuidv4 } = require('uuid');
+const aws = require('aws-sdk');
 
 const authRoutes = require('./routes/auth');
 const wordRoutes = require('./routes/word');
@@ -27,19 +29,17 @@ const options = {
 	origin: allowedOrigins,
 };
 
+aws.config.update({
+	secretAccessKey: '4UtGkoh8TMWJjENl/EUi6s1aYo09ORjV0y3SFYLQ',
+	accessKeyId: 'AKIA3PPO7J2C7W32C3ER',
+	region: 'us-east-1',
+});
+
 const app = express();
 app.use(cors(options));
 app.use(express.json({ limit: '50mb' }));
 
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, 'images');
-	},
-	filename: function (req, file, cb) {
-		const extension = file.originalname.split('.').pop();
-		cb(null, uuidv4() + '.' + extension);
-	},
-});
+const s3 = new aws.S3();
 
 const fileFilter = (req, file, cb) => {
 	if (
@@ -53,8 +53,20 @@ const fileFilter = (req, file, cb) => {
 	}
 };
 
-app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
-app.use('/images', express.static(path.join(__dirname, 'images')));
+const upload = multer({
+	storage: multerS3({
+		s3: s3,
+		bucket: 'leareng-bucket/images',
+		acl: 'public-read',
+		key: function (req, file, cb) {
+			const extension = file.originalname.split('.').pop();
+			cb(null, uuidv4() + '.' + extension);
+		},
+		fileFilter: fileFilter,
+	}),
+});
+
+app.use(upload.single('image'));
 
 app.use('/auth', authRoutes);
 
