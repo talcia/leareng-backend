@@ -132,7 +132,6 @@ exports.updateUser = async (req, res, next) => {
 
 exports.updateUserAvatar = async (req, res, next) => {
 	try {
-		console.log('witam');
 		const userId = req.params.id;
 		const updatedUser = await User.findById(userId);
 		if (!updatedUser) {
@@ -145,12 +144,8 @@ exports.updateUserAvatar = async (req, res, next) => {
 			error.statusCode = 401;
 			throw error;
 		}
-		console.log(req.body);
-		let imageUrl = req.body.image;
-		if (req.file) {
-			imageUrl = req.file.path.replace('\\', '/');
-		}
-		console.log(imageUrl);
+		let imageUrl = req.file.key;
+
 		if (!imageUrl) {
 			const error = new Error('No file picked');
 			error.statusCode = 422;
