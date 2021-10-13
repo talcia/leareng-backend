@@ -17,6 +17,7 @@ const userSchema = new Schema({
 	},
 	avatarUrl: {
 		type: String,
+		default: 'noprofile.png',
 	},
 	role: {
 		type: Number,

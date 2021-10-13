@@ -24,6 +24,12 @@ const options = {
 	origin: allowedOrigins,
 };
 
+aws.config.update({
+	secretAccessKey: process.env.AWS_SECRETACCESSKEY,
+	accessKeyId: process.env.AWS_ACCESSKEYID,
+	region: process.env.AWS_REGION,
+});
+
 const app = express();
 
 app.use(cors(options));
