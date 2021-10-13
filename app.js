@@ -36,8 +36,6 @@ aws.config.update({
 });
 
 const app = express();
-
-const app = express();
 app.use(cors(options));
 app.use(express.json({ limit: '50mb' }));
 
