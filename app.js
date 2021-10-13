@@ -3,7 +3,12 @@ const mongoose = require('mongoose');
 
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, './.env') });
+
 const cors = require('cors');
+const multer = require('multer');
+var multerS3 = require('multer-s3');
+const { v4: uuidv4 } = require('uuid');
+const aws = require('aws-sdk');
 
 const authRoutes = require('./routes/auth');
 const wordRoutes = require('./routes/word');
@@ -32,8 +37,38 @@ aws.config.update({
 
 const app = express();
 
+const app = express();
 app.use(cors(options));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+
+const s3 = new aws.S3();
+
+const fileFilter = (req, file, cb) => {
+	if (
+		file.mimetype === 'image/png' ||
+		file.mimetype === 'image/jpg' ||
+		file.mimetype === 'image/jpeg'
+	) {
+		cb(null, true);
+	} else {
+		cb(null, false);
+	}
+};
+
+const upload = multer({
+	storage: multerS3({
+		s3: s3,
+		bucket: 'leareng-bucket/images',
+		acl: 'public-read',
+		key: function (req, file, cb) {
+			const extension = file.originalname.split('.').pop();
+			cb(null, uuidv4() + '.' + extension);
+		},
+		fileFilter: fileFilter,
+	}),
+});
+
+app.use(upload.single('image'));
 
 app.use('/auth', authRoutes);
 

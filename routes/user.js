@@ -25,6 +25,8 @@ router.post('/:id/unblock', isAuth, isAdmin, userController.unblockUser);
 
 router.patch('/:id', isAuth, userController.updateUser);
 
+router.patch('/:id/avatar', isAuth, userController.updateUserAvatar);
+
 router.delete('/:id', isAuth, userController.deleteUser);
 
 router.get('/:id/words/:wordId', isAuth, userController.getWord);
