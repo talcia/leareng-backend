@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+
 const mailjet = require('node-mailjet').connect(
 	process.env.API_KEY_MAIL,
 	process.env.API_PASS_MAIL
