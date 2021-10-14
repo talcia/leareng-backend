@@ -62,7 +62,7 @@ exports.signup = async (req, res, next) => {
 			HTMLPart: `<h1>You successfully signed up!</h1>
 			<br>
 			<p>Let's confirm your email address</p>
-			<p>Click this <a href="${process.env.FRONTEND_URL}/auth/confirm-email/${tokenSignup.token}">link</a> to confim email</p>`,
+			<p>Click this <a href="${process.env.FRONTEND_URL}/${tokenSignup.token}">link</a> to confim email</p>`,
 		};
 
 		sendEmail(msg);
@@ -110,7 +110,7 @@ exports.sendConfrimEmailAgain = async (req, res, next) => {
 			HTMLPart: `<h1>You successfully signed up!</h1>
 			<br>
 			<p>Let's confirm your email address</p>
-			<p>Click this <a href="${process.env.FRONTEND_URL}/auth/confirm-email/${tokenSignup.token}">link</a> to confim email</p>`,
+			<p>Click this <a href="${process.env.FRONTEND_URL}/${tokenSignup.token}">link</a> to confim email</p>`,
 		};
 
 		sendEmail(msg);
