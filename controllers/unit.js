@@ -161,13 +161,13 @@ exports.deleteUnit = async (req, res, next) => {
 
 exports.addWordToUnit = async (req, res, next) => {
 	try {
-		const errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			const error = new Error('Validation faild');
-			error.statusCode = 422;
-			error.data = errors.array();
-			throw error;
-		}
+		// const errors = validationResult(req);
+		// if (!errors.isEmpty()) {
+		// 	const error = new Error('Validation faild');
+		// 	error.statusCode = 422;
+		// 	error.data = errors.array();
+		// 	throw error;
+		// }
 		const user = await User.findById(req.userId);
 
 		const unit = await Unit.findById(req.params.id);
@@ -177,14 +177,13 @@ exports.addWordToUnit = async (req, res, next) => {
 			throw error;
 		}
 
-		const word = req.body.word;
-		const translation = req.body.translation;
+		const word = req.body.word.map((item) => item.toLowerCase());
+		const translation = req.body.translation.map((item) =>
+			item.toLowerCase()
+		);
 		const fromLang = req.body.fromLang;
 		const toLang = req.body.toLang;
 		let creator;
-		console.log(req.body);
-		console.log(word);
-		console.log(translation);
 
 		const createdWord = new Word({
 			word: word,

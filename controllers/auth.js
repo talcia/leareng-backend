@@ -2,13 +2,15 @@ const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
+const mailjet = require('node-mailjet').connect(
+	process.env.API_KEY_MAIL,
+	process.env.API_PASS_MAIL
+);
 
 const User = require('../models/User');
 const TokenSignup = require('../models/TokenSignup');
 const TokenReset = require('../models/TokenReset');
-
-sgMail.setApiKey(`SG.${process.env.SENDGRID_API_KEY}`);
 
 exports.signup = async (req, res, next) => {
 	try {
@@ -46,14 +48,21 @@ exports.signup = async (req, res, next) => {
 		});
 
 		const msg = {
-			to: email,
-			from: `${process.env.MAIL_FROM_MAIL}`,
-			subject: 'Complete the singup',
-			text: 'You successfully signed up!',
-			html: `<h1>You successfully signed up!</h1>
-					<br>
-					<p>Let's confirm your email address</p>
-					<p>Click this <a href="http://localhost:8080/auth/confirmEmail/${tokenSignup.token}">link</a> to confim email</p>`,
+			From: {
+				Email: process.env.MAIL_FROM_MAIL,
+				Name: 'Leareng App',
+			},
+			To: [
+				{
+					Email: email,
+				},
+			],
+			Subject: 'Complete the singup',
+			TextPart: 'You successfully signed up!',
+			HTMLPart: `<h1>You successfully signed up!</h1>
+			<br>
+			<p>Let's confirm your email address</p>
+			<p>Click this <a href="${process.env.FRONTEND_URL}/auth/confirm-email/${tokenSignup.token}">link</a> to confim email</p>`,
 		};
 
 		sendEmail(msg);
@@ -87,13 +96,21 @@ exports.sendConfrimEmailAgain = async (req, res, next) => {
 		});
 
 		const msg = {
-			to: email,
-			from: `${process.env.MAIL_FROM_MAIL}`,
-			subject: 'Complete the singup',
-			html: `<h1>You successfully signed up!</h1>
-				<br>
-				<p>Let's confirm your email address</p>
-				<p>Click this <a href="http://localhost:8080/auth/confirmEmail/${tokenSignup.token}">link</a> to confim email</p>`,
+			From: {
+				Email: process.env.MAIL_FROM_MAIL,
+				Name: 'Leareng App',
+			},
+			To: [
+				{
+					Email: email,
+				},
+			],
+			Subject: 'Complete the singup',
+			TextPart: 'You successfully signed up!',
+			HTMLPart: `<h1>You successfully signed up!</h1>
+			<br>
+			<p>Let's confirm your email address</p>
+			<p>Click this <a href="${process.env.FRONTEND_URL}/auth/confirm-email/${tokenSignup.token}">link</a> to confim email</p>`,
 		};
 
 		sendEmail(msg);
@@ -226,11 +243,19 @@ exports.tokenToResetPassword = async (req, res, next) => {
 		user.save();
 
 		const msg = {
-			to: email,
-			from: `${process.env.MAIL_FROM_MAIL}`,
-			subject: 'Reset your password',
-			html: `<h1>You asked to password change</h1>
-					<p>To reset your password click this <a href="${process.env.FRONTEND_URL}/auth/reset-password/${tokenReset.token}">link</a></p>`,
+			From: {
+				Email: process.env.MAIL_FROM_MAIL,
+				Name: 'Leareng App',
+			},
+			To: [
+				{
+					Email: email,
+				},
+			],
+			Subject: 'Reset your password',
+			TextPart: 'You asked to password change',
+			HTMLPart: `<h1>You asked to password change</h1>
+			<p>To reset your password click this <a href="${process.env.FRONTEND_URL}/auth/reset-password/${tokenReset.token}">link</a></p>`,
 		};
 		sendEmail(msg);
 		res.status(200).json({
@@ -282,10 +307,18 @@ exports.resetPassword = async (req, res, next) => {
 		await TokenReset.findByIdAndRemove(token._id);
 
 		const msg = {
-			to: email,
-			from: `${process.env.MAILT_FROM_MAIL}`,
-			subject: 'Your password was successfully reset',
-			html: `<h1>Congrats, your password was successfully reset</h1>`,
+			From: {
+				Email: process.env.MAIL_FROM_MAIL,
+				Name: 'Leareng App',
+			},
+			To: [
+				{
+					Email: email,
+				},
+			],
+			Subject: 'Your password was successfully reset',
+			TextPart: 'Congrats, your password was successfully reset',
+			HTMLPart: '<h1>Congrats, your password was successfully reset</h1>',
 		};
 		sendEmail(msg);
 		res.status(200).json({
@@ -300,9 +333,12 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 const sendEmail = (msg) => {
-	sgMail
-		.send(msg)
-		.then(() => {
+	const request = mailjet
+		.post('send', { version: 'v3.1' })
+		.request({ Messages: [msg] });
+	request
+		.then((result) => {
+			console.log(result.body);
 			console.log('Email sent');
 		})
 		.catch((err) => {
