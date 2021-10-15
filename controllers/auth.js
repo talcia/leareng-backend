@@ -62,7 +62,9 @@ exports.signup = async (req, res, next) => {
 			HTMLPart: `<h1>You successfully signed up!</h1>
 			<br>
 			<p>Let's confirm your email address</p>
-			<p>Click this <a href="${process.env.FRONTEND_URL}/${tokenSignup.token}">link</a> to confim email</p>`,
+			<p>Click this <a href="${process.env.FRONTEND_URL}/${
+				'confirme' + tokenSignup.token
+			}">link</a> to confim email</p>`,
 		};
 
 		sendEmail(msg);
@@ -110,7 +112,9 @@ exports.sendConfrimEmailAgain = async (req, res, next) => {
 			HTMLPart: `<h1>You successfully signed up!</h1>
 			<br>
 			<p>Let's confirm your email address</p>
-			<p>Click this <a href="${process.env.FRONTEND_URL}/${tokenSignup.token}">link</a> to confim email</p>`,
+			<p>Click this <a href="${process.env.FRONTEND_URL}/${
+				'confirme' + tokenSignup.token
+			}">link</a> to confim email</p>`,
 		};
 
 		sendEmail(msg);
@@ -255,7 +259,9 @@ exports.tokenToResetPassword = async (req, res, next) => {
 			Subject: 'Reset your password',
 			TextPart: 'You asked to password change',
 			HTMLPart: `<h1>You asked to password change</h1>
-			<p>To reset your password click this <a href="${process.env.FRONTEND_URL}/auth/reset-password/${tokenReset.token}">link</a></p>`,
+			<p>To reset your password click this <a href="${process.env.FRONTEND_URL}/${
+				'password' + tokenReset.token
+			}">link</a></p>`,
 		};
 		sendEmail(msg);
 		res.status(200).json({
@@ -271,8 +277,8 @@ exports.tokenToResetPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
 	try {
-		const email = req.body.email;
 		const tokenReset = req.params.token;
+		console.log(tokenReset);
 		const token = await TokenReset.findOne({ token: tokenReset });
 		if (!token) {
 			const error = new Error('Token not found');
@@ -286,6 +292,7 @@ exports.resetPassword = async (req, res, next) => {
 			throw error;
 		}
 		const user = await User.findOne({ tokenToResetPw: token._id });
+		console.log(user);
 		if (!user) {
 			const error = new Error('No user found with that email');
 			error.statusCode = 404;
@@ -313,7 +320,7 @@ exports.resetPassword = async (req, res, next) => {
 			},
 			To: [
 				{
-					Email: email,
+					Email: user.email,
 				},
 			],
 			Subject: 'Your password was successfully reset',
@@ -338,7 +345,6 @@ const sendEmail = (msg) => {
 		.request({ Messages: [msg] });
 	request
 		.then((result) => {
-			console.log(result.body);
 			console.log('Email sent');
 		})
 		.catch((err) => {
